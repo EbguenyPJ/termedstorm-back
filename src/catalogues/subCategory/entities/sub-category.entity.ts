@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Brand } from 'src/catalogues/brand/entities/brand.entity';
+import { Category } from 'src/catalogues/category/entities/category.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
 
 @Entity('tc_sub_category')
 export class SubCategory {
@@ -22,4 +24,12 @@ export class SubCategory {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @ManyToMany(() => Category, (category) => category.subcategories)
+  categories: Category[];
+
+  @ManyToMany(() => Brand, (brand) => brand.subcategories)
+  @JoinTable({ name: 'tr_subcategory_brand'})
+  brands: Brand[];
 }
+

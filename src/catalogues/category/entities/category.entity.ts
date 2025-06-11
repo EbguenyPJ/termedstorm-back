@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
 
 @Entity('tc_category')
 export class Category {
@@ -22,4 +23,8 @@ export class Category {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @ManyToMany(() => SubCategory, (subCategory) => subCategory.categories)
+    @JoinTable({ name: 'tc_category_sub_category' })
+    subcategories: SubCategory[];
 }
