@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import typeorm from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodosModule } from './modules/todos/todos.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TodosModule } from './modules/todos/todos.module';
       useFactory: (config: ConfigService) => config.get('typeorm')!,
     }),
     TodosModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
