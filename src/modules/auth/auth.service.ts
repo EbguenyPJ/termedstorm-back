@@ -1,14 +1,18 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-
+import { RegisterEmployeeDto } from './dto/register-employee.dto';
+import { RegisterClientDto } from './dto/register-client.dto';
+import { LoginDto } from './dto/login.dto';
 import { User } from '../users/entities/user.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { Client } from '../users/entities/client.entity';
-
-import { RegisterEmployeeDto } from './dto/register-employee.dto';
-import { RegisterClientDto } from './dto/register-client.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +20,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly dataSource: DataSource,
+    private readonly jwtService: JwtService,
   ) {}
 
   async registerEmployee(registerEmployeeDto: RegisterEmployeeDto) {
@@ -73,5 +78,39 @@ export class AuthService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+    const { email, password } = loginDto;
+
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['employee', 'employee.roles'],
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordMatching = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatching) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.employee) {
+      throw new UnauthorizedException('This login is for employees only.');
+    }
+
+    const roles = user.employee.roles.map((role) => role.name);
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      roles: roles,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }
