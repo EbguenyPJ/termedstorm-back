@@ -4,7 +4,7 @@ import { loggerGlobal } from './middlewares/logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.use(loggerGlobal);
   app.useGlobalPipes(
     new ValidationPipe({
