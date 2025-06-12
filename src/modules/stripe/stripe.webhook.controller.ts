@@ -10,7 +10,7 @@ import { Request } from 'express';
 import Stripe from 'stripe';
 import { StripeService } from './stripe.service';
 import { OrdersService } from '../orders/orders.service';
-import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { SubscriptionsService } from '../suscriptions/subscriptions.service';
 
 @Controller('stripe-webhook')
 export class StripeWebhookController {

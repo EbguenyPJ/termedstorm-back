@@ -8,41 +8,43 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { OrderDetail } from './orderDetail.entity';
 
-@Entity({ name: 'ORDERS' })
+@Entity({ name: 'tw_orders' })
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 's_folio_order', type: 'varchar' })
+  @Column({ type: 'varchar' })
   folio: string;
 
-  @Column({ name: 'n_total_products', type: 'int' })
+  @Column({ type: 'int' })
   totalProducts: number;
 
-  @Column({ name: 'n_total_order', type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalOrder: number;
 
-  @Column({ name: 'd_date_order', type: 'date' })
+  @Column({ type: 'date' })
   date: string;
 
-  @Column({ name: 't_time_order', type: 'time' })
+  @Column({ type: 'time' })
   time: string;
 
-  @Column({ name: 'b_activo', type: 'smallint', default: 1 })
-  activo: number;
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updatedAt: Date;
 
   @OneToMany(() => OrderDetail, (detail) => detail.order, { cascade: true })
   details: OrderDetail[];
 
   @ManyToOne(() => Client, { nullable: true })
-  @JoinColumn({ name: 'id_client' })
+  @JoinColumn({ name: 'tw_client' })
   client: Client;
 
   @ManyToOne(() => Employee)
-  @JoinColumn({ name: 'id_employee' })
+  @JoinColumn({ name: 'tw_employee' })
   employee: Employee;
 
   //nombre de cashReconciliations ok ??

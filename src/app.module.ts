@@ -4,7 +4,7 @@ import typeorm from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodosModule } from './modules/todos/todos.module';
 import { StripeModule } from './modules/stripe/stripe.module';
-import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { SubscriptionsModule } from './modules/suscriptions/subscriptions.module';
 
 @Module({
   imports: [
