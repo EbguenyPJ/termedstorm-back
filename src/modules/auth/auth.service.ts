@@ -119,4 +119,28 @@ export class AuthService {
     //   access_token: this.jwtService.sign(payload),
     // };
   }
+
+  async validateAndLoginGoogleUser(googleUser: { email: string }) {
+    const { email } = googleUser;
+
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['employee', 'employee.roles'],
+    });
+
+    if (!user || !user.employee) {
+      throw new UnauthorizedException(
+        'This Google account is not associated with a registered employee.',
+      );
+    }
+
+    const roles = user.employee.roles.map((role) => role.name);
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      roles: roles,
+    };
+
+    return this.jwtService.sign(payload);
+  }
 }
