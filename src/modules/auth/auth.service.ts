@@ -80,7 +80,9 @@ export class AuthService {
     }
   }
 
-  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+  //% 1. El servicio ya no debe devolver un objeto, sino solo la cadena del token, que el controlador usará para crear la cookie
+  // async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+  async login(loginDto: LoginDto): Promise<string> {
     const { email, password } = loginDto;
 
     const user = await this.userRepository.findOne({
@@ -109,8 +111,12 @@ export class AuthService {
       roles: roles,
     };
 
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    //%1. Firmar y devolver EL TOKEN (no el objeto)
+    return this.jwtService.sign(payload);
+
+    //%1. Esto devuelve el objeto
+    // return {
+    //   access_token: this.jwtService.sign(payload),
+    // };
   }
 }
