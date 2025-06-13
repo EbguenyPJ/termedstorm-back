@@ -46,5 +46,8 @@ export class CreateProductDto {
   brandId: string;
 
   @IsUUID()
-  createdBy: string;
+  employeeId: string;
+
+  @IsUUID()
+  modifiedId: string;
 }

@@ -5,10 +5,16 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Category } from 'src/catalogues/category/entities/category.entity';
 import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.entity';
 import { Brand } from 'src/catalogues/brand/entities/brand.entity';
+import { Gender } from 'src/catalogues/gender/entities/gender.entity';
+import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
+import { ProductModification } from 'src/modules/productModification/entities/product-modification.entity';
 
 @Entity('tw_products')
 export class Product {
@@ -23,7 +29,7 @@ export class Product {
   description: string;
 
   @Column('varchar', { 
-    length: 200 })
+    length: 200, unique: true })
   code: string;
 
   @Column('text')
@@ -35,20 +41,42 @@ export class Product {
   @Column('decimal', { precision: 10, scale: 2 })
   salePrice: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column('uuid')
+  employeeId: string;
+
+  @Column('uuid')
+  modifiedId: string;
+
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   createdAt: Date;
 
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
+  deletedAt: Date;
+
   @ManyToOne(() => Category)
-  @JoinColumn({ name: 'category_id' })
+  @JoinColumn({ name: 'categoryId' })
   category: Category;
 
   @ManyToOne(() => SubCategory)
-  @JoinColumn({ name: 'sub_category_id' })
+  @JoinColumn({ name: 'subCategoryId' })
   subCategory: SubCategory;
 
   @ManyToOne(() => Brand)
-  @JoinColumn({ name: 'brand_id' })
+  @JoinColumn({ name: 'brandId' })
   brand: Brand;
+
+  @ManyToOne(() => Gender)
+  @JoinColumn({ name: 'genderId' })
+  gender: Gender;
+
+  @OneToMany(() => ProductVariant, (variant) => variant.product)
+  variants: ProductVariant[];
+
+  @OneToMany(() => ProductModification, (modification) => modification.product)
+  modification: ProductModification[];
 
   //   @ManyToOne(() => User)
   //   @JoinColumn({ name: 'created_by' })

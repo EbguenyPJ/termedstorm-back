@@ -16,6 +16,10 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
+  async saveMany(data: CreateProductDto[]) {
+  return this.productRepository.save(data);
+}
+
   async create(createDto: CreateProductDto): Promise<Product> {
     const exist = await this.productRepository.findOne({
       where: { id: createDto.id },
