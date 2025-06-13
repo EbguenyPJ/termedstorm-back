@@ -4,12 +4,15 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+export class GoogleClientStrategy extends PassportStrategy(
+  Strategy,
+  'google-client',
+) {
   constructor(private readonly configService: ConfigService) {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
-      callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL_EMPLOYEE'),
+      callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL_CLIENT'),
       scope: ['email', 'profile'],
     });
   }
@@ -25,10 +28,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       email: emails[0].value,
       firstName: name.givenName,
       lastName: name.familyName,
-      picture: photos[0].value,
-      accessToken, //& token de google
     };
-    //? El 'done' callback pasa el usuario procesado al framework de Passport
     done(null, user);
   }
 }

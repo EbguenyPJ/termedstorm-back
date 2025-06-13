@@ -23,39 +23,103 @@ import { Response, Request } from 'express';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register/employee')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
-  registerEmployee(
-    @Body(new ValidationPipe()) registerEmployeeDto: RegisterEmployeeDto,
+  //& --- RUTAS DE CLIENTES ---
+
+  @Post('client/login')
+  @HttpCode(HttpStatus.OK)
+  async clientLogin(
+    @Body(new ValidationPipe()) loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.registerEmployee(registerEmployeeDto);
+    const accessToken = await this.authService.clientLogin(loginDto);
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 día
+    });
+    return { message: 'Login successful' };
   }
 
-  @Post('register/client')
+  @Post('client/register')
+  @HttpCode(HttpStatus.CREATED)
   registerClient(
     @Body(new ValidationPipe()) registerClientDto: RegisterClientDto,
   ) {
     return this.authService.registerClient(registerClientDto);
   }
 
-  //% 1. Establecer la cookie.
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) response: Response,
+  @Get('client/google')
+  @UseGuards(AuthGuard('google-client'))
+  async clientGoogleAuth(@Req() req: Request) {}
+
+  @Get('client/google/callback')
+  @UseGuards(AuthGuard('google-client'))
+  async clientGoogleAuthRedirect(
+    @Req() req: Request,
+    @Res() response: Response,
   ) {
-    const accessToken = await this.authService.login(loginDto);
+    const userFromGoogle = req.user as any;
+    const accessToken =
+      await this.authService.validateAndLoginOrCreateClient(userFromGoogle);
 
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Solo enviar por HTTPS en producción
-      sameSite: 'strict', // Protección estricta contra CSRF   | lax  | none :La cookie se envía siempre, incluso en peticiones cross-site, pero requiere secure: true.
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
+    response.redirect('http://localhost...');
+  }
 
+  //& --- RUTAS DE EMPLEADOS ---
+
+  @Post('employee/register')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.CREATED)
+  registerEmployee(
+    @Body(new ValidationPipe()) registerEmployeeDto: RegisterEmployeeDto,
+  ) {
+    return this.authService.registerEmployee(registerEmployeeDto);
+  }
+
+  @Post('employee/login')
+  @HttpCode(HttpStatus.OK)
+  async employeeLogin(
+    @Body(new ValidationPipe()) loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const accessToken = await this.authService.employeeLogin(loginDto);
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+    });
     return { message: 'Login successful' };
+  }
+
+  @Get('employee/google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Req() req: Request) {}
+
+  @Get('employee/google/callback')
+  @UseGuards(AuthGuard('google'))
+  async employeeGoogleAuthRedirect(
+    @Req() req: Request,
+    @Res() response: Response,
+  ) {
+    const userFromGoogle = req.user as { email: string };
+    const accessToken =
+      await this.authService.validateAndLoginGoogleEmployee(userFromGoogle);
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+    });
+    response.redirect('http://localhost...'); // URL del dashboard de empleados
   }
 
   //% 1. Método login con jwt Token
@@ -65,40 +129,11 @@ export class AuthController {
   //   return this.authService.login(loginDto);
   // }
 
-  //% 1. Método logout para eliminar la coockie
+  //& --- RUTA DE LOGOUT ---
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('access_token');
     return { message: 'Logout successful' };
-  }
-
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req: Request) {
-    // Este endpoint simplemente activa el AuthGuard de Google,
-    // que redirige al usuario a la página de consentimiento de Google.
-  }
-
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: Request, @Res() response: Response) {
-    // Passport adjunta el perfil del usuario (del método 'validate' de la estrategia) en req.user
-    const userFromGoogle = req.user as { email: string };
-
-    // Validación y obtención de token propio
-    const accessToken =
-      await this.authService.validateAndLoginGoogleUser(userFromGoogle);
-
-    // Establecer la cookie como en el login tradicional
-    response.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-    });
-
-    // Redirigimos al usuario al frontend
-    // URL de frontend tras login exitoso
-    response.redirect('http://localhost....');
   }
 }

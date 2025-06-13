@@ -11,6 +11,7 @@ import { Client } from '../users/entities/client.entity';
 import { Role } from '../roles/entities/role.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { GoogleClientStrategy } from './strategies/google-client.strategy';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { GoogleStrategy } from './strategies/google.strategy';
     TypeOrmModule.forFeature([User, Employee, Client, Role]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, GoogleClientStrategy],
 })
 export class AuthModule {}
