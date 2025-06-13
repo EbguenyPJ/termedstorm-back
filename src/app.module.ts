@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodosModule } from './modules/todos/todos.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { EmployeesModule } from './modules/employees/employees.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { RolesModule } from './modules/roles/roles.module';
     TodosModule,
     AuthModule,
     RolesModule,
+    EmployeesModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],
