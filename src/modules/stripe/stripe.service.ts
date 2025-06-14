@@ -1,10 +1,6 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import Stripe from 'stripe';
 
 @Injectable()
@@ -26,6 +22,35 @@ export class StripeService {
     });
   }
 
+  async findOrCreateCustomer(email: string, name: string) {
+    const customers = await this.stripe.customers.list({
+      email: email,
+      limit: 1,
+    });
+
+    if (customers.data.length > 0) {
+      return customers.data[0];
+    }
+    return this.stripe.customers.create({ email, name });
+  }
+
+  async attachPaymentMethod(customerId: string, paymentMethodId: string) {
+    return this.stripe.paymentMethods.attach(paymentMethodId, {
+      customer: customerId,
+    });
+  }
+
+  async updateCustomerDefaultPaymentMethod(
+    customerId: string,
+    paymentMethodId: string,
+  ) {
+    return this.stripe.customers.update(customerId, {
+      invoice_settings: {
+        default_payment_method: paymentMethodId,
+      },
+    });
+  }
+
   async createCheckoutSession(
     lineItems: Stripe.Checkout.SessionCreateParams.LineItem[],
     metadata: Stripe.MetadataParam,
@@ -42,54 +67,12 @@ export class StripeService {
     });
   }
 
-  async createSubscription(
-    customerId: string,
-    priceId: string,
-    paymentMethodId: string,
-  ) {
-    try {
-      const subscription = await this.stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: priceId }],
-        default_payment_method: paymentMethodId,
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
-      });
-
-      return subscription;
-    } catch (error) {
-      this.logger.error(
-        `Error al crear la suscripción en Stripe: ${error.message}`,
-      );
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async findOrCreateCustomer(
-    email: string,
-    name: string,
-    paymentMethodId: string,
-  ) {
-    const customers = await this.stripe.customers.list({
-      email: email,
-      limit: 1,
+  async createSubscription(customerId: string, priceId: string) {
+    return this.stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      expand: ['latest_invoice.payment_intent'],
     });
-
-    if (customers.data.length > 0) {
-      const customer = customers.data[0];
-      await this.attachPaymentMethod(customer.id, paymentMethodId);
-      return customer;
-    }
-
-    const customer = await this.stripe.customers.create({
-      email: email,
-      name: name,
-      payment_method: paymentMethodId,
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    });
-    return customer;
   }
 
   constructEvent(body: Buffer, signature: string) {
@@ -108,12 +91,14 @@ export class StripeService {
     return this.stripe.webhooks.constructEvent(body, signature, webhookSecret);
   }
 
-  async attachPaymentMethod(customerId: string, paymentMethodId: string) {
-    await this.stripe.paymentMethods.attach(paymentMethodId, {
-      customer: customerId,
-    });
-    await this.stripe.customers.update(customerId, {
-      invoice_settings: { default_payment_method: paymentMethodId },
-    });
+  async cancelSubscription(subscriptionId: string) {
+    return this.stripe.subscriptions.cancel(subscriptionId);
+  }
+
+  async retrieveSubscription(
+    subscriptionId: string,
+  ): Promise<Stripe.Subscription> {
+    this.logger.log(`Recuperando suscripción de Stripe: ${subscriptionId}`);
+    return this.stripe.subscriptions.retrieve(subscriptionId);
   }
 }

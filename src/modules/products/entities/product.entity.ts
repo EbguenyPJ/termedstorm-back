@@ -21,55 +21,58 @@ export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', { 
-    length: 200 })
+  @Column('varchar', {
+    length: 200,
+  })
   name: string;
 
   @Column('text')
   description: string;
 
-  @Column('varchar', { 
-    length: 200, unique: true })
+  @Column('varchar', {
+    length: 200,
+    unique: true,
+  })
   code: string;
 
   @Column('text')
   image: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  purchasePrice: number;
+  purchase_price: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  salePrice: number;
+  sale_price: number;
 
   @Column('uuid')
-  employeeId: string;
+  employee_id: string;
 
   @Column('uuid')
-  modifiedId: string;
+  modified_id: string;
 
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
-  deletedAt: Date;
+  deleted_at: Date;
 
   @ManyToOne(() => Category)
-  @JoinColumn({ name: 'categoryId' })
+  @JoinColumn({ name: 'category_id' })
   category: Category;
 
   @ManyToOne(() => SubCategory)
-  @JoinColumn({ name: 'subCategoryId' })
-  subCategory: SubCategory;
+  @JoinColumn({ name: 'subCategory_id' })
+  sub_category: SubCategory;
 
   @ManyToOne(() => Brand)
-  @JoinColumn({ name: 'brandId' })
+  @JoinColumn({ name: 'brand_id' })
   brand: Brand;
 
   @ManyToOne(() => Gender)
-  @JoinColumn({ name: 'genderId' })
+  @JoinColumn({ name: 'gender_id' })
   gender: Gender;
 
   @OneToMany(() => ProductVariant, (variant) => variant.product)

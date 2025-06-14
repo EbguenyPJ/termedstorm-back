@@ -11,9 +11,9 @@ export class CreateSubscriptionDto {
 
   @IsString()
   @IsNotEmpty()
-  priceId: string; // id que tengo en la nota q saque del dashboard de stripe
+  price_id: string; // id que tengo en la nota q saque del dashboard de stripe
 
   @IsString()
   @IsNotEmpty()
-  paymentMethodId: string;
+  payment_method_id: string;
 }

@@ -1,37 +1,36 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { User } from './users.placeholder.entity';
 
-@Entity()
+@Entity({ name: 'clients' })
 export class Client {
-  @PrimaryGeneratedColumn('increment') // O 'uuid' si usas UUIDs
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', unique: true })
-  email: string;
+  @Column({ type: 'boolean', default: false })
+  is_premium: boolean;
 
-  @Column({ type: 'varchar' })
-  name: string;
+  @Column({ type: 'varchar', nullable: true })
+  membership_id?: string;
 
-  @Column({
-    name: 'stripe_customer_id',
-    type: 'varchar',
-    nullable: true,
-    unique: true,
-  })
-  stripeCustomerId: string;
+  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at', nullable: true })
+  deletedAt: Date;
 
-  @Column({
-    name: 'stripe_subscription_id',
-    type: 'varchar',
-    nullable: true,
-    unique: true,
-  })
-  stripeSubscriptionId: string;
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  createdAt: Date;
 
-  @Column({
-    name: 'subscription_status',
-    type: 'varchar',
-    length: 50,
-    nullable: true,
-  })
-  subscriptionStatus: string; // si esta activa impaga o como
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updatedAt: Date;
+
+  @OneToOne(() => User, (user) => user.client, { cascade: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

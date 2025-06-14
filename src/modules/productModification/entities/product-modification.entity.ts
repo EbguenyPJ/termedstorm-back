@@ -16,28 +16,28 @@ export class ProductModification {
   id: string;
 
   @Column('uuid')
-  idProduct: string;
+  id_product: string;
 
   @Column('text')
-  modificationFieldName: string;
+  modification_field_name: string;
 
   @Column('text')
-  previousState: string;
+  previous_state: string;
 
   @Column('text')
-  currentState: string;
+  current_state: string;
 
   @Column('uuid')
-  idEmployee: string;
+  id_employee: string;
 
-@CreateDateColumn({ type: 'timestamp', name: 'created_at' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
-  deletedAt: Date;
+  deleted_at: Date;
 
   @ManyToOne(() => Product, (product) => product.modification)
   @JoinColumn({ name: 'id_product' })

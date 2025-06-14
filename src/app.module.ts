@@ -14,6 +14,10 @@ import { ProductModule } from './modules/products/product.module';
 import { CsvUploadModule } from './modules/csvUpload/csv-upload.module';
 import { ProductVariant } from './modules/productsVariant/entities/product-variant.entity';
 import { ProductModification } from './modules/productModification/entities/product-modification.entity';
+import { Order } from './modules/orders/entities/order.entity';
+import { OrdersModule } from './modules/orders/orders.module';
+import { StripeModule } from './modules/stripe/stripe.module';
+import { SubscriptionsModule } from './modules/suscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -26,6 +30,9 @@ import { ProductModification } from './modules/productModification/entities/prod
       useFactory: (config: ConfigService) => config.get('typeorm')!,
     }),
     TodosModule,
+    OrdersModule,
+    StripeModule,
+    SubscriptionsModule,
     MembershipStatusModule,
     SubCategoryModule,
     PaymentMethodModule,

@@ -16,9 +16,12 @@ export class MembershipType {
   @Column({ type: 'varchar' })
   name: string;
 
+  @Column({ type: 'varchar' })
+  stripe_price_id: string;
+
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @OneToMany(() => Membership, (membership) => membership.type)
-  memberships: Membership[];
+  membership: Membership[];
 }

@@ -15,9 +15,9 @@ export class CompanyMembership {
   id: string;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ManyToOne(() => Membership)
-  @JoinColumn({ name: 'tw_membership' })
+  @JoinColumn({ name: 'tw_membership_relation' })
   membresia: Membership;
 }

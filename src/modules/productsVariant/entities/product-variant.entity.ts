@@ -19,10 +19,10 @@ export class ProductVariant {
   description: string;
 
   @Column('float')
-  sizeUS: number;
+  size_us: number;
 
   @Column('float')
-  sizeEUR: number;
+  size_eur: number;
 
   @Column('float')
   sizecm: number;
@@ -34,18 +34,18 @@ export class ProductVariant {
   stock: number;
 
   @Column('uuid')
-  idProduct: string;
+  id_product: string;
 
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
-  deletedAt: Date;
+  deleted_at: Date;
 
   @ManyToOne(() => Product, (product) => product.variants)
-  @JoinColumn({ name: 'id_product' })
+  @JoinColumn({ name: 'id_product_relation' })
   product: Product;
 }

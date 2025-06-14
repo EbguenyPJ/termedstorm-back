@@ -1,30 +1,40 @@
-import { Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToOne,
+  JoinColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { User } from './users.placeholder.entity';
 
-export enum EmployeeRole {
-  ADMIN = 'admin',
-  VENDEDOR = 'vendedor',
-}
-
+@Entity({ name: 'employees' })
 export class Employee {
+  @PrimaryGeneratedColumn('uuid')
   id: string;
-  name: string;
-  email: string;
 
-  @Column({
-    type: 'enum',
-    enum: EmployeeRole,
-    default: EmployeeRole.VENDEDOR,
-  })
-  role: EmployeeRole;
+  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at', nullable: true })
+  deletedAt: Date;
 
-  // El admin que paga tendrá estos campos. Los demás empleados de la misma empresa
-  // se beneficiarían de esta suscripción. // como diferenciamos user de admin. PUse enum  ???
-  @Column({ name: 'stripe_customer_id', nullable: true, unique: true })
-  stripeCustomerId: string;
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  createdAt: Date;
 
-  @Column({ name: 'stripe_subscription_id', nullable: true, unique: true })
-  stripeSubscriptionId: string;
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updatedAt: Date;
 
-  @Column({ name: 'subscription_status', nullable: true })
-  subscriptionStatus: string;
+  // @ManyToMany(() => Role, { eager: true })
+  // @JoinTable({
+  //   name: 'employee_roles',
+  //   joinColumn: { name: 'employee_id', referencedColumnName: 'id' },
+  //   inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
+  // })
+  // roles: Role[];
+
+  @OneToOne(() => User, (user) => user.employee)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

@@ -4,21 +4,24 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private readonly productVariantRepository: Repository<ProductVariant>,
   ) {}
 
   async saveMany(data: CreateProductDto[]) {
-  return this.productRepository.save(data);
-}
+    return this.productRepository.save(data);
+  }
 
   async create(createDto: CreateProductDto): Promise<Product> {
     const exist = await this.productRepository.findOne({
@@ -50,24 +53,42 @@ export class ProductService {
     return product;
   }
 
-async update(id: string, updateDto: UpdateProductDto): Promise<{ message: string; updatedProduct: Product }> {
-  const product = await this.productRepository.preload({ id, ...updateDto });
+  async update(
+    id: string,
+    updateDto: UpdateProductDto,
+  ): Promise<{ message: string; updatedProduct: Product }> {
+    const product = await this.productRepository.preload({ id, ...updateDto });
 
-  if (!product) {
-    throw new NotFoundException(`Product with id ${id} not found`);
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+
+    const updatedProduct = await this.productRepository.save(product);
+
+    return {
+      message: `Product with id ${id} updated successfully`,
+      updatedProduct,
+    };
   }
-
-  const updatedProduct = await this.productRepository.save(product);
-
-  return {
-    message: `Product with id ${id} updated successfully`,
-    updatedProduct,
-  };
-}
 
   async remove(id: string): Promise<{ message: string }> {
     const product = await this.findOne(id);
     await this.productRepository.delete(product.id);
     return { message: `Product with id ${id} deleted successfully` };
+  }
+
+  async findManyVariantsByIds(ids: string[]): Promise<ProductVariant[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    return this.productVariantRepository.find({
+      where: {
+        id: In(ids),
+      },
+      relations: {
+        product: true,
+      },
+    });
   }
 }

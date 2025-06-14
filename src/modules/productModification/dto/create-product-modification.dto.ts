@@ -1,24 +1,23 @@
-import { IsNotEmpty, IsString, IsUUID } from "class-validator";
-
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateProductModificationDto {
   @IsUUID()
   @IsNotEmpty()
-  idProduct: string;
+  id_product: string;
 
   @IsString()
   @IsNotEmpty()
-  modificationFieldName: string;
+  modification_field_name: string;
 
   @IsString()
   @IsNotEmpty()
-  previousState: string;
+  previous_state: string;
 
   @IsString()
   @IsNotEmpty()
-  currentState: string;
+  current_state: string;
 
   @IsUUID()
   @IsNotEmpty()
-  idEmployee: string;
+  id_employee: string;
 }

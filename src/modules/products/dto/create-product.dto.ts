@@ -30,24 +30,24 @@ export class CreateProductDto {
 
   @IsNumber()
   @IsNotEmpty()
-  purchasePrice: number;
+  purchase_price: number;
 
   @IsNumber()
   @IsNotEmpty()
-  salePrice: number;
+  sale_price: number;
 
   @IsUUID()
-  categoryId: string;
+  category_id: string;
 
   @IsUUID()
-  subCategoryId: string;
+  subCategory_id: string;
 
   @IsUUID()
-  brandId: string;
+  brand_id: string;
 
   @IsUUID()
-  employeeId: string;
+  employee_id: string;
 
   @IsUUID()
-  modifiedId: string;
+  modified_id: string;
 }
