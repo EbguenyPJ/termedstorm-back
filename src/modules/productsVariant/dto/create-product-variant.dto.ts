@@ -7,15 +7,15 @@ export class CreateProductVariantDto {
 
   @IsNumber()
   @IsOptional()
-  sizeUS: number;
+  size_us: number;
 
   @IsNumber()
   @IsOptional()
-  sizeEUR: number;
+  size_eur: number;
 
   @IsNumber()
   @IsOptional()
-  sizecm: number;
+  size_cm: number;
 
   @IsString()
   @IsOptional()
@@ -27,5 +27,5 @@ export class CreateProductVariantDto {
 
   @IsString()
   @IsNotEmpty()
-  idProduct: string;
+  product_id_relation: string;
 }

@@ -3,9 +3,13 @@ import { IsString, IsOptional, IsBoolean } from 'class-validator';
 export class UpdateBrandDto {
   @IsString()
   @IsOptional()
-  brand?: string;
+  name?: string;
 
-  @IsBoolean()
+  @IsString()
   @IsOptional()
-  isActive?: boolean;
+  key?: string;
+
+  @IsString()
+  @IsOptional()
+  image?: string;
 }

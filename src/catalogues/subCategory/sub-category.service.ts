@@ -1,45 +1,122 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { In, Repository } from 'typeorm';
 import { SubCategory } from './entities/sub-category.entity';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Category } from '../category/entities/category.entity';
+import { Brand } from '../brand/entities/brand.entity';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class SubCategoryService {
   constructor(
     @InjectRepository(SubCategory)
     private readonly subCategoryRepository: Repository<SubCategory>,
+
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+
+    @InjectRepository(Brand)
+    private readonly brandRepository: Repository<Brand>,
   ) {}
 
-  async create(createDto: CreateSubCategoryDto): Promise<SubCategory> {
+  async create(createDto: CreateSubCategoryDto): Promise<any> {
+    const existing = await this.subCategoryRepository.findOne({
+      where: [{ name: createDto.name }, { key: createDto.key }],
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        `Subcategory alredy exist with ${
+          existing.name === createDto.name ? 'name' : 'key'
+        }: ${existing.name === createDto.name ? createDto.name : createDto.key}`,
+      );
+    }
+
+    const { categories, brands } = createDto;
+
+    const duplicateCategoryIds = categories.filter(
+      (id, i, arr) => arr.indexOf(id) !== i,
+    );
+    const duplicateBrandIds = brands.filter(
+      (id, i, arr) => arr.indexOf(id) !== i,
+    );
+    if (duplicateCategoryIds.length || duplicateBrandIds.length) {
+      throw new BadRequestException(
+        `IDs duplicated: ${duplicateCategoryIds.length ? 'categories' : ''} ${
+          duplicateBrandIds.length ? 'brands' : ''
+        }`,
+      );
+    }
+
+    const existingCategories = await this.categoryRepository.find({
+      where: { id: In(categories) },
+    });
+    const existingBrands = await this.brandRepository.find({
+      where: { id: In(brands) },
+    });
+
+    if (existingCategories.length !== categories.length) {
+      const missing = categories.filter(
+        (id) => !existingCategories.find((c) => c.id === id),
+      );
+      throw new NotFoundException(
+        `categories not found: ${missing.join(', ')}`,
+      );
+    }
+
+    if (existingBrands.length !== brands.length) {
+      const missing = brands.filter(
+        (id) => !existingBrands.find((b) => b.id === id),
+      );
+      throw new NotFoundException(`brands not found: ${missing.join(', ')}`);
+    }
+
     const subCategory = this.subCategoryRepository.create({
       ...createDto,
-      isActive: createDto.isActive ?? true,
+      categories: existingCategories,
+      brands: existingBrands,
     });
-    return this.subCategoryRepository.save(subCategory);
+    const saved = await this.subCategoryRepository.save(subCategory);
+    return instanceToPlain(saved);
   }
 
-  async findAll(): Promise<SubCategory[]> {
-    return this.subCategoryRepository.find({ where: { isActive: true } });
+  async findAll(): Promise<any> {
+    const subCategories = await this.subCategoryRepository.find({
+      relations: {
+        categories: true,
+        brands: true,
+      },
+    });
+    return instanceToPlain(subCategories);
   }
 
-  async findOne(id: string): Promise<SubCategory> {
+  async findOne(id: string): Promise<any> {
     const subCategory = await this.subCategoryRepository.findOne({
-      where: { id, isActive: true },
+      where: { id },
+      relations: {
+        categories: true,
+        brands: true,
+      },
     });
-    if (!subCategory)
+
+    if (!subCategory) {
       throw new NotFoundException(`SubCategory with id ${id} not found`);
-    return subCategory;
+    }
+
+    return instanceToPlain(subCategory);
   }
 
   async update(
     id: string,
     updateDto: UpdateSubCategoryDto,
   ): Promise<{ message: string }> {
-    const exists = await this.subCategoryRepository.findOne({
-      where: { id, isActive: true },
-    });
+    const exists = await this.subCategoryRepository.findOneBy({ id });
     if (!exists)
       throw new NotFoundException(`SubCategory with id ${id} not found`);
     await this.subCategoryRepository.update(id, updateDto);
@@ -47,12 +124,10 @@ export class SubCategoryService {
   }
 
   async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.subCategoryRepository.findOne({
-      where: { id, isActive: true },
-    });
+    const exists = await this.subCategoryRepository.findOne({ where: { id } });
     if (!exists)
       throw new NotFoundException(`SubCategory with id ${id} not found`);
-    await this.subCategoryRepository.update(id, { isActive: false });
-    return { message: `SubCategory with id ${id} deactivated successfully` };
+    await this.subCategoryRepository.softDelete(id);
+    return { message: `SubCategory with id ${id} deleted successfully` };
   }
 }

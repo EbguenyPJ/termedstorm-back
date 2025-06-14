@@ -1,13 +1,10 @@
-import { IsString, IsOptional, IsBoolean, IsUUID, IsNotEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsString, IsNotEmpty, IsUrl } from 'class-validator';
 
 export class CreateCategoryDto {
   @IsString()
-  @IsUUID()
   @IsNotEmpty()
-  id: string;
-
-  @IsString()
-  @IsNotEmpty()
+  @Transform(({ value }) => value?.trim().toLowerCase())
   name: string;
 
   @IsString()
@@ -16,9 +13,6 @@ export class CreateCategoryDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsUrl()
   image: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

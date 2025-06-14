@@ -12,8 +12,4 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   image?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

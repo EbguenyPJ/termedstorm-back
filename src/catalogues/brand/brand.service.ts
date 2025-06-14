@@ -1,41 +1,67 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Brand } from './entities/brand.entity';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class BrandService {
   constructor(
     @InjectRepository(Brand) private readonly brandRepository: Repository<Brand>) {}
 
-  async create(createDto: CreateBrandDto): Promise<Brand> {
-    const newBrand = this.brandRepository.create({
-      ...createDto,
-      isActive: createDto.isActive ?? true,
+ async create(createDto: CreateBrandDto): Promise<any> {
+    const { name, key } = createDto;
+
+    const existing = await this.brandRepository.findOne({
+      where: [{ name }, { key }],
     });
-    return this.brandRepository.save(newBrand);
+
+    if (existing) {
+      throw new BadRequestException(
+        `Brand already exists with ${
+          existing.name === name ? 'name' : 'key'
+        }: ${existing.name === name ? name : key}`,
+      );
+    }
+
+    const brand = this.brandRepository.create({ ...createDto });
+    const saved = await this.brandRepository.save(brand);
+    return instanceToPlain(saved);
   }
 
-  async findAll(): Promise<Brand[]> {
-    return this.brandRepository.find({ where: { isActive: true } });
+  async findAll(): Promise<any> {
+    const brands = await this.brandRepository.find({
+      relations: {
+        subcategories: true,
+      },
+    });
+    return instanceToPlain(brands);
   }
 
-  async findOne(id: string): Promise<Brand> {
+  async findOne(id: string): Promise<any> {
     const brand = await this.brandRepository.findOne({
-      where: { id, isActive: true },
+      where: { id },
+      relations: {
+        subcategories: true,
+      },
     });
-    if (!brand) throw new NotFoundException(`Brand with id ${id} not found`);
-    return brand;
+
+    if (!brand) {
+      throw new NotFoundException(`Brand with id ${id} not found`);
+    }
+
+    return instanceToPlain(brand);
   }
+
 
   async update(
     id: string,
     updateDto: UpdateBrandDto,
   ): Promise<{ message: string }> {
     const exists = await this.brandRepository.findOne({
-      where: { id, isActive: true },
+      where: { id },
     });
     if (!exists) throw new NotFoundException(`Brand with id ${id} not found`);
     await this.brandRepository.update(id, updateDto);
@@ -44,10 +70,10 @@ export class BrandService {
 
   async delete(id: string): Promise<{ message: string }> {
     const exists = await this.brandRepository.findOne({
-      where: { id, isActive: true },
+      where: { id },
     });
     if (!exists) throw new NotFoundException(`Brand with id ${id} not found`);
-    await this.brandRepository.update(id, { isActive: false });
+    await this.brandRepository.softDelete(id);
     return { message: `Brand with id ${id} deactivated successfully` };
   }
 }

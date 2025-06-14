@@ -14,7 +14,7 @@ import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.en
 import { Brand } from 'src/catalogues/brand/entities/brand.entity';
 import { Gender } from 'src/catalogues/gender/entities/gender.entity';
 import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
-import { ProductModification } from 'src/modules/productModification/entities/product-modification.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('tw_products')
 export class Product {
@@ -22,61 +22,55 @@ export class Product {
   id: string;
 
   @Column('varchar', { 
-    length: 200 })
+  length: 200 })
   name: string;
 
   @Column('text')
   description: string;
 
   @Column('varchar', { 
-    length: 200, unique: true })
+  length: 200, unique: true })
   code: string;
 
   @Column('text')
   image: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  purchasePrice: number;
+  purchase_price: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  salePrice: number;
+  sale_price: number;
 
   @Column('uuid')
-  employeeId: string;
+  category_id: string;
 
   @Column('uuid')
-  modifiedId: string;
+  sub_category_id: string;
 
-  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
-  createdAt: Date;
+  @Column('uuid')
+  brand_id: string;
 
-  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
-  updatedAt: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
-  deletedAt: Date;
+  @Column('uuid')
+  gender_id: string;
 
   @ManyToOne(() => Category)
-  @JoinColumn({ name: 'categoryId' })
+  @JoinColumn({ name: 'category_id' })
   category: Category;
 
   @ManyToOne(() => SubCategory)
-  @JoinColumn({ name: 'subCategoryId' })
+  @JoinColumn({ name: 'sub_category_id' })
   subCategory: SubCategory;
 
   @ManyToOne(() => Brand)
-  @JoinColumn({ name: 'brandId' })
+  @JoinColumn({ name: 'brand_id' })
   brand: Brand;
 
   @ManyToOne(() => Gender)
-  @JoinColumn({ name: 'genderId' })
+  @JoinColumn({ name: 'gender_id' })
   gender: Gender;
 
   @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants: ProductVariant[];
-
-  @OneToMany(() => ProductModification, (modification) => modification.product)
-  modification: ProductModification[];
 
   //   @ManyToOne(() => User)
   //   @JoinColumn({ name: 'created_by' })
@@ -85,4 +79,14 @@ export class Product {
   //   @ManyToOne(() => User)
   //   @JoinColumn({ name: 'modified_by' })
   //   modifiedBy: User;
+  
+  @Exclude()
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  created_at: Date;
+  @Exclude()
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updated_at: Date;
+  @Exclude()
+  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
+  deleted_at: Date;
 }

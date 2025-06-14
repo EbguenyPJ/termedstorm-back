@@ -11,11 +11,13 @@ import {
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
+import { AutoAudit } from 'src/modules/auditModification/decorator/audit-log.decorator';
 
 @Controller('brands')
 export class BrandController {
   constructor(private readonly brandService: BrandService) {}
 
+  @AutoAudit()
   @Post()
   create(@Body() dto: CreateBrandDto) {
     return this.brandService.create(dto);

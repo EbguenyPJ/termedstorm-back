@@ -11,11 +11,13 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { AutoAudit } from 'src/modules/auditModification/decorator/audit-log.decorator';
 
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
+  @AutoAudit()
   @Post()
   create(@Body() createDto: CreateCategoryDto) {
     return this.categoryService.create(createDto);

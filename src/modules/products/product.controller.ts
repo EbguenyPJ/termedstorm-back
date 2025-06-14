@@ -2,12 +2,14 @@ import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from "
 import { ProductService } from "./product.service";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
+import { AutoAudit } from "../auditModification/decorator/audit-log.decorator";
 
 @Controller('products')
 export class ProductController {
   constructor(
     private readonly productService: ProductService) {}
 
+  @AutoAudit()
   @Post()
   create(@Body() createDto: CreateProductDto) {
     return this.productService.create(createDto);
@@ -30,6 +32,6 @@ export class ProductController {
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.productService.remove(id);
+    return this.productService.delete(id);
   }
 }

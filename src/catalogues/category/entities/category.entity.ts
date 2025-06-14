@@ -1,5 +1,15 @@
+import { Exclude } from 'class-transformer';
 import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 
 @Entity('tc_category')
 export class Category {
@@ -21,10 +31,17 @@ export class Category {
   })
   image: string;
 
-  @Column({ default: true })
-  isActive: boolean;
-
   @ManyToMany(() => SubCategory, (subCategory) => subCategory.categories)
-    @JoinTable({ name: 'tc_category_sub_category' })
-    subcategories: SubCategory[];
+  @JoinTable({ name: 'tr_category_sub_category' })
+  subcategories: SubCategory[];
+
+  @Exclude()
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  created_at: Date;
+  @Exclude()
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updated_at: Date;
+  @Exclude()
+  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
+  deleted_at: Date;
 }

@@ -11,11 +11,13 @@ import {
 import { SubCategoryService } from './sub-category.service';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
+import { AutoAudit } from 'src/modules/auditModification/decorator/audit-log.decorator';
 
 @Controller('sub-categories')
 export class SubCategoryController {
   constructor(private readonly subCategoryService: SubCategoryService) {}
 
+  @AutoAudit()
   @Post()
   create(@Body() dto: CreateSubCategoryDto) {
     return this.subCategoryService.create(dto);

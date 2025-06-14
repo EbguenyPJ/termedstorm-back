@@ -12,8 +12,9 @@ import { CancelReasonModule } from './catalogues/cancelReason/cancel-reason.modu
 import { BrandModule } from './catalogues/brand/brand.module';
 import { ProductModule } from './modules/products/product.module';
 import { CsvUploadModule } from './modules/csvUpload/csv-upload.module';
-import { ProductVariant } from './modules/productsVariant/entities/product-variant.entity';
-import { ProductModification } from './modules/productModification/entities/product-modification.entity';
+import { ProductVariantModule } from './modules/productsVariant/product-variant.module';
+import { AuditModule } from './modules/auditModification/audit.module';
+
 
 @Module({
   imports: [
@@ -34,9 +35,9 @@ import { ProductModification } from './modules/productModification/entities/prod
     CancelReasonModule,
     BrandModule,
     ProductModule,
-    ProductVariant,
-    ProductModification,
-    CsvUploadModule
+    CsvUploadModule,
+    ProductVariantModule,
+    AuditModule
   ],
   controllers: [],
   providers: [],

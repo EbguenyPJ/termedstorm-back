@@ -1,16 +1,9 @@
-import { IsString, IsBoolean, IsOptional, IsUUID, IsNotEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateGenderDto {
   @IsString()
-  @IsUUID()
   @IsNotEmpty()
-  id: string;
-
-  @IsString()
-  @IsNotEmpty()
-  gender: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
+  @Transform(({ value }) => value?.trim().toLowerCase())
+  name: string;
 }

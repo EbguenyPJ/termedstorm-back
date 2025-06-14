@@ -1,16 +1,18 @@
-import { IsString, IsOptional, IsBoolean, IsUUID, IsNotEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsString, IsOptional, IsBoolean, IsUUID, IsNotEmpty, IsUrl } from 'class-validator';
 
 export class CreateBrandDto {
   @IsString()
-  @IsUUID()
   @IsNotEmpty()
-  id: string;
+  @Transform(({ value }) => value?.trim().toLowerCase())
+  name: string;
 
   @IsString()
   @IsNotEmpty()
-  brand: string;
+  key: string;
 
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl()
+  image: string;
 }
