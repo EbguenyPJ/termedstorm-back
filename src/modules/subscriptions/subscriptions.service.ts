@@ -65,8 +65,6 @@ export class SubscriptionsService {
     try {
       const client = await this.findOrCreateClient(dto, queryRunner.manager);
 
-      // aca
-
       const membershipType = await queryRunner.manager.findOneBy(
         MembershipType,
         { stripe_price_id: price_id },
@@ -264,7 +262,6 @@ export class SubscriptionsService {
   }
 }
 
-//esto va donde dice 'aca'
 // let client = await queryRunner.manager.findOne(Client, {
 //   where: { user: { email } },
 //   relations: ['user'],

@@ -14,7 +14,7 @@ import {
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { StripeService } from '../stripe/stripe.service';
-import { SubscriptionsService } from '../suscriptions/subscriptions.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import Stripe from 'stripe';
 import { UpdateOrderDto } from './dto/update-order.dto';
 

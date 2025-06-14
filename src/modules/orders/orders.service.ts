@@ -223,30 +223,6 @@ export class OrdersService {
     return entityManager.save(order);
   }
 
-  async calculateOrderTotal(productDtos) {
-    const productIds = productDtos.map((p) => p.productId);
-    const dbProducts = await Promise.all(
-      productIds.map((id) => this.productService.findOne(id)),
-    );
-    const productMap = new Map(dbProducts.map((p) => [p.id, p]));
-    let total = 0;
-
-    const lineItems = productDtos.map((pDto) => {
-      const product = productMap.get(pDto.productId);
-      total += product!.sale_price * pDto.quantity;
-      return {
-        price_data: {
-          currency: 'usd',
-          product_data: { name: product!.name },
-          unit_amount: Math.round(product!.sale_price * 100),
-        },
-        quantity: pDto.quantity,
-      };
-    });
-
-    return { lineItems, total };
-  }
-
   async findOneById(id: string): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id },
@@ -295,6 +271,30 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 }
+
+// async calculateOrderTotal(productDtos) {
+//   const productIds = productDtos.map((p) => p.productId);
+//   const dbProducts = await Promise.all(
+//     productIds.map((id) => this.productService.findOne(id)),
+//   );
+//   const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+//   let total = 0;
+
+//   const lineItems = productDtos.map((pDto) => {
+//     const product = productMap.get(pDto.productId);
+//     total += product!.sale_price * pDto.quantity;
+//     return {
+//       price_data: {
+//         currency: 'usd',
+//         product_data: { name: product!.name },
+//         unit_amount: Math.round(product!.sale_price * 100),
+//       },
+//       quantity: pDto.quantity,
+//     };
+//   });
+
+//   return { lineItems, total };
+// }
 
 //
 

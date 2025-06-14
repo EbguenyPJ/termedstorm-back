@@ -17,7 +17,7 @@ import { ProductModification } from './modules/productModification/entities/prod
 import { Order } from './modules/orders/entities/order.entity';
 import { OrdersModule } from './modules/orders/orders.module';
 import { StripeModule } from './modules/stripe/stripe.module';
-import { SubscriptionsModule } from './modules/suscriptions/subscriptions.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
