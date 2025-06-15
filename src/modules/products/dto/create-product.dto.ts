@@ -43,19 +43,19 @@ export class CreateProductDto {
   @IsNotEmpty()
   sale_price: number;
 
-  @ApiProperty({ example: ['6a271a27-6fb1-4d7a-b921-674e244e3c8a'] })
+  @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
   category_id: string;
 
-  @ApiProperty({ example: ['6a271a27-6fb1-4d7a-b921-674e244e3c8a'] })
+  @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
   sub_category_id: string;
 
-  @ApiProperty({ example: ['6a271a27-6fb1-4d7a-b921-674e244e3c8a'] })
+  @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
   brand_id: string;
 
-  @ApiProperty({ example: ['6a271a27-6fb1-4d7a-b921-674e244e3c8a'] })
+  @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
   employee_id: string;
 
