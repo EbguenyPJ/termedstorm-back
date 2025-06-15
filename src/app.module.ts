@@ -3,9 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import typeorm from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodosModule } from './modules/todos/todos.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { StripeModule } from './modules/stripe/stripe.module';
-import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { EmployeesModule } from './modules/employees/employees.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -18,9 +19,10 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
       useFactory: (config: ConfigService) => config.get('typeorm')!,
     }),
     TodosModule,
-    OrdersModule,
-    StripeModule,
-    SubscriptionsModule,
+    AuthModule,
+    RolesModule,
+    EmployeesModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],
