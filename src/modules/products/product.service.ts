@@ -120,4 +120,19 @@ export class ProductService {
     await this.productRepository.update(id, { deleted_at: new Date() });
     return { message: `Product with ID ${id} deleted successfully` };
   }
+
+   //   async findManyVariantsByIds(ids: string[]): Promise<ProductVariant[]> {
+    //   if (!ids || ids.length === 0) {
+    //     return [];
+    //   }
+  
+    //   return this.variantRepository.find({
+    //     where: {
+    //       id: In(ids),
+    //     },
+    //     relations: {
+    //       product: true,
+    //     },
+    //   });
+    // }
 }

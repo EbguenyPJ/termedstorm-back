@@ -56,21 +56,6 @@ export class ProductVariantService {
     return instanceToPlain(variant);
   }
 
-  //   async findManyVariantsByIds(ids: string[]): Promise<ProductVariant[]> {
-  //   if (!ids || ids.length === 0) {
-  //     return [];
-  //   }
-
-  //   return this.variantRepository.find({
-  //     where: {
-  //       id: In(ids),
-  //     },
-  //     relations: {
-  //       product: true,
-  //     },
-  //   });
-  // }
-
   async update(
     id: string,
     updateDto: UpdateProductVariantDto,

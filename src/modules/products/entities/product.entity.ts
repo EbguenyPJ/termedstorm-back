@@ -12,7 +12,6 @@ import {
 import { Category } from 'src/catalogues/category/entities/category.entity';
 import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.entity';
 import { Brand } from 'src/catalogues/brand/entities/brand.entity';
-import { Gender } from 'src/catalogues/gender/entities/gender.entity';
 import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
 import { Exclude } from 'class-transformer';
 
