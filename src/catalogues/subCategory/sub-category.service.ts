@@ -38,27 +38,20 @@ export class SubCategoryService {
       );
     }
 
-    const { categories, brands } = createDto;
+    const { categories } = createDto;
 
     const duplicateCategoryIds = categories.filter(
       (id, i, arr) => arr.indexOf(id) !== i,
     );
-    const duplicateBrandIds = brands.filter(
-      (id, i, arr) => arr.indexOf(id) !== i,
-    );
-    if (duplicateCategoryIds.length || duplicateBrandIds.length) {
+    
+    if (duplicateCategoryIds.length) {
       throw new BadRequestException(
-        `IDs duplicated: ${duplicateCategoryIds.length ? 'categories' : ''} ${
-          duplicateBrandIds.length ? 'brands' : ''
-        }`,
+        `IDs duplicated: ${duplicateCategoryIds.length ? 'categories' : ''}`,
       );
     }
 
     const existingCategories = await this.categoryRepository.find({
       where: { id: In(categories) },
-    });
-    const existingBrands = await this.brandRepository.find({
-      where: { id: In(brands) },
     });
 
     if (existingCategories.length !== categories.length) {
@@ -70,17 +63,9 @@ export class SubCategoryService {
       );
     }
 
-    if (existingBrands.length !== brands.length) {
-      const missing = brands.filter(
-        (id) => !existingBrands.find((b) => b.id === id),
-      );
-      throw new NotFoundException(`brands not found: ${missing.join(', ')}`);
-    }
-
     const subCategory = this.subCategoryRepository.create({
       ...createDto,
       categories: existingCategories,
-      brands: existingBrands,
     });
     const saved = await this.subCategoryRepository.save(subCategory);
     return instanceToPlain(saved);

@@ -36,7 +36,6 @@ export class SubCategory {
   categories: Category[];
 
   @ManyToMany(() => Brand, (brand) => brand.subcategories)
-  @JoinTable({ name: 'tr_subcategory_brand' })
   brands: Brand[];
 
   @Exclude()

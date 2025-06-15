@@ -15,4 +15,8 @@ export class CreateBrandDto {
   @IsNotEmpty()
   @IsUrl()
   image: string;
+
+  @IsUUID('4', { each: true })
+  @IsNotEmpty()
+  subcategories: string[];
 }

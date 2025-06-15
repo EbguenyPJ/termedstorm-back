@@ -1,18 +1,22 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Brand } from './entities/brand.entity';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { instanceToPlain } from 'class-transformer';
+import { SubCategory } from '../subCategory/entities/sub-category.entity';
 
 @Injectable()
 export class BrandService {
   constructor(
-    @InjectRepository(Brand) private readonly brandRepository: Repository<Brand>) {}
+    @InjectRepository(Brand) private readonly brandRepository: Repository<Brand>,
+    @InjectRepository(SubCategory)
+  private readonly subCategoryRepository: Repository<SubCategory>,
+  ) {}
 
  async create(createDto: CreateBrandDto): Promise<any> {
-    const { name, key } = createDto;
+    const { name, key, subcategories } = createDto;
 
     const existing = await this.brandRepository.findOne({
       where: [{ name }, { key }],
@@ -26,7 +30,30 @@ export class BrandService {
       );
     }
 
-    const brand = this.brandRepository.create({ ...createDto });
+      const duplicateSubCategoryIds = subcategories.filter(
+    (id, i, arr) => arr.indexOf(id) !== i,
+  );
+  if (duplicateSubCategoryIds.length) {
+    throw new BadRequestException(`Duplicated SubCategory IDs`);
+  }
+
+  const existingSubCategories = await this.subCategoryRepository.find({
+    where: { id: In(subcategories) },
+  });
+
+  if (existingSubCategories.length !== subcategories.length) {
+    const missing = subcategories.filter(
+      (id) => !existingSubCategories.find((sc) => sc.id === id),
+    );
+    throw new NotFoundException(
+      `SubCategories not found: ${missing.join(', ')}`,
+    );
+  }
+
+    const brand = this.brandRepository.create({
+    ...createDto,
+    subcategories: existingSubCategories,
+  });
     const saved = await this.brandRepository.save(brand);
     return instanceToPlain(saved);
   }

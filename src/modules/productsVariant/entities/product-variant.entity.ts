@@ -1,4 +1,6 @@
+import { Exclude } from 'class-transformer';
 import { Product } from 'src/modules/products/entities/product.entity';
+import { Size } from 'src/modules/sizeProduct/entities/size-product.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -19,30 +21,33 @@ export class ProductVariant {
   description: string;
 
   @Column('float')
-  size_us: number;
-
-  @Column('float')
-  size_eur: number;
-
-  @Column('float')
-  size_cm: number;
-
   @Column()
   color: string;
 
   @Column()
   stock: number;
 
-  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
-  created_at: Date;
+  @Column('uuid')
+  size_id: string;
 
-  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
-  updated_at: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
-  deleted_at: Date;
+  @Column('uuid')
+  product_id: string;
 
   @ManyToOne(() => Product, (product) => product.variants)
-  @JoinColumn({ name: 'product_id_relation' })
+  @JoinColumn({ name: 'product_id' })
   product: Product;
+
+  @ManyToOne(() => Size, (size) => size.variants)
+  @JoinColumn({ name: 'size_id' })
+  size: Size;
+
+  @Exclude()
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  created_at: Date;
+  @Exclude()
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updated_at: Date;
+  @Exclude()
+  @DeleteDateColumn({ type: 'timestamp', name: 'deleted_at' })
+  deleted_at: Date;
 }

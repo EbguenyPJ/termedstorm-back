@@ -8,6 +8,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  JoinTable,
 } from 'typeorm';
 
 @Entity('tc_brands')
@@ -31,6 +32,7 @@ export class Brand {
   image: string;
 
   @ManyToMany(() => SubCategory, (subCategory) => subCategory.brands)
+  @JoinTable({ name: 'tr_subcategory_brand' })
   subcategories: SubCategory[];
 
   @Exclude()

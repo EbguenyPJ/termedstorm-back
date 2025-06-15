@@ -50,9 +50,6 @@ export class Product {
   @Column('uuid')
   brand_id: string;
 
-  @Column('uuid')
-  gender_id: string;
-
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'category_id' })
   category: Category;
@@ -65,20 +62,12 @@ export class Product {
   @JoinColumn({ name: 'brand_id' })
   brand: Brand;
 
-  @ManyToOne(() => Gender)
-  @JoinColumn({ name: 'gender_id' })
-  gender: Gender;
-
   @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants: ProductVariant[];
 
   //   @ManyToOne(() => User)
   //   @JoinColumn({ name: 'created_by' })
   //   createdBy: User;
-
-  //   @ManyToOne(() => User)
-  //   @JoinColumn({ name: 'modified_by' })
-  //   modifiedBy: User;
   
   @Exclude()
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })

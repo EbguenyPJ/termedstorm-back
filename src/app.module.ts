@@ -14,6 +14,7 @@ import { ProductModule } from './modules/products/product.module';
 import { CsvUploadModule } from './modules/csvUpload/csv-upload.module';
 import { ProductVariantModule } from './modules/productsVariant/product-variant.module';
 import { AuditModule } from './modules/auditModification/audit.module';
+import { SizeModule } from './modules/sizeProduct/size-product.module';
 
 
 @Module({
@@ -37,7 +38,8 @@ import { AuditModule } from './modules/auditModification/audit.module';
     ProductModule,
     CsvUploadModule,
     ProductVariantModule,
-    AuditModule
+    AuditModule,
+    SizeModule
   ],
   controllers: [],
   providers: [],

@@ -5,18 +5,6 @@ export class CreateProductVariantDto {
   @IsNotEmpty()
   description: string;
 
-  @IsNumber()
-  @IsOptional()
-  size_us: number;
-
-  @IsNumber()
-  @IsOptional()
-  size_eur: number;
-
-  @IsNumber()
-  @IsOptional()
-  size_cm: number;
-
   @IsString()
   @IsOptional()
   color: string;
@@ -27,5 +15,9 @@ export class CreateProductVariantDto {
 
   @IsString()
   @IsNotEmpty()
-  product_id_relation: string;
+  size_id: string;
+
+  @IsString()
+  @IsOptional()
+  product_id?: string;
 }

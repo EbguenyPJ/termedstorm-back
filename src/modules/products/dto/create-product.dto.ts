@@ -1,11 +1,14 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
   IsNumber,
   IsUUID,
   IsOptional,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
+import { CreateProductVariantDto } from 'src/modules/productsVariant/dto/create-product-variant.dto';
 
 export class CreateProductDto {
   @IsString()
@@ -45,9 +48,9 @@ export class CreateProductDto {
   @IsUUID()
   employee_id: string;
 
-  @IsUUID()
-  modified_id: string;
-
-  @IsUUID()
-  gender_id: string;
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductVariantDto)
+  variants: CreateProductVariantDto[];
 }

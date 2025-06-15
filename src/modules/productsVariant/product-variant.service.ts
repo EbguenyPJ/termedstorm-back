@@ -1,52 +1,92 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ProductVariant } from './entities/product-variant.entity';
 import { CreateProductVariantDto } from './dto/create-product-variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
+import { Size } from '../sizeProduct/entities/size-product.entity';
+import { Product } from '../products/entities/product.entity';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class ProductVariantService {
   constructor(
     @InjectRepository(ProductVariant)
     private readonly variantRepository: Repository<ProductVariant>,
+    @InjectRepository(Size)
+    private readonly sizeRepository: Repository<Size>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
 
-  async create(dto: CreateProductVariantDto): Promise<ProductVariant> {
-    const variant = this.variantRepository.create({
-      ...dto,
-      product: { id: dto.product_id_relation } as any,
+  async create(createDto: CreateProductVariantDto): Promise<any> {
+    const { size_id, product_id } = createDto;
+
+    const size = await this.sizeRepository.findOne({ where: { id: size_id } });
+    if (!size) {
+      throw new NotFoundException(`Size with id ${size_id} not found`);
+    }
+
+    const product = await this.productRepository.findOne({
+      where: { id: product_id },
     });
-    return this.variantRepository.save(variant);
+    if (!product) {
+      throw new NotFoundException(`Product with id ${product_id} not found`);
+    }
+
+    const variant = this.variantRepository.create(createDto);
+    const saved = await this.variantRepository.save(variant);
+    return instanceToPlain(saved);
   }
 
-  findAll(): Promise<ProductVariant[]> {
-    return this.variantRepository.find({ relations: ['product'] });
+  async findAll(): Promise<any> {
+    const productVariants = await this.variantRepository.find({
+      relations: ['product', 'size'],
+    });
+    return instanceToPlain(productVariants);
   }
 
-  async findOne(id: string): Promise<ProductVariant> {
+  async findOne(id: string): Promise<any> {
     const variant = await this.variantRepository.findOne({
       where: { id },
-      relations: ['product'],
+      relations: ['product', 'size'],
     });
-    if (!variant) throw new NotFoundException(`Variant with ID ${id} not found`);
-    return variant;
+    if (!variant)
+      throw new NotFoundException(`Variant with ID ${id} not found`);
+    return instanceToPlain(variant);
   }
 
-  async update(id: string, updateDto: UpdateProductVariantDto): Promise<{ message: string }> {
-    const exists = await this.variantRepository.findOneBy({id});
+  //   async findManyVariantsByIds(ids: string[]): Promise<ProductVariant[]> {
+  //   if (!ids || ids.length === 0) {
+  //     return [];
+  //   }
+
+  //   return this.variantRepository.find({
+  //     where: {
+  //       id: In(ids),
+  //     },
+  //     relations: {
+  //       product: true,
+  //     },
+  //   });
+  // }
+
+  async update(
+    id: string,
+    updateDto: UpdateProductVariantDto,
+  ): Promise<{ message: string }> {
+    const exists = await this.variantRepository.findOneBy({ id });
     if (!exists) {
       throw new NotFoundException(`Variant with ID ${id} not found`);
     }
     await this.variantRepository.update(id, {
       ...updateDto,
-      product: updateDto.product_id_relation ? { id: updateDto.product_id_relation } as any : exists.product,
     });
     return { message: `Variant with ID ${id} updated successfully` };
   }
 
   async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.variantRepository.findOneBy({id});
+    const exists = await this.variantRepository.findOneBy({ id });
     if (!exists) {
       throw new NotFoundException(`Variant with ID ${id} not found`);
     }

@@ -4,37 +4,73 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { instanceToPlain } from 'class-transformer';
+import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
+import { Size } from '../sizeProduct/entities/size-product.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private readonly variantRepository: Repository<ProductVariant>,
+    @InjectRepository(Size)
+    private readonly sizeRepository: Repository<Size>,
   ) {}
 
   async saveMany(data: CreateProductDto[]) {
-  return this.productRepository.save(data);
-}
+    return this.productRepository.save(data);
+  }
 
   async create(createDto: CreateProductDto): Promise<any> {
+    const { variants, ...productData } = createDto;
+
     const exist = await this.productRepository.findOne({
-      where: { code: createDto.code },
+      where: { code: productData.code },
     });
     if (exist) {
       throw new BadRequestException(
         `Product with code ${createDto.code} alredy exists`,
       );
     }
-    const product = this.productRepository.create({
-      ...createDto
-  });
-    const saved = await this.productRepository.save(product)
-    return instanceToPlain(saved);
+    const product = this.productRepository.create(productData);
+    const savedProduct = await this.productRepository.save(product);
+
+    if (variants && variants.length > 0) {
+      const preparedVariants = await Promise.all(
+        variants.map(async (variant) => {
+          const size = await this.sizeRepository.findOne({
+            where: { id: variant.size_id },
+          });
+
+          if (!size) {
+            throw new NotFoundException(
+              `Size with id ${variant.size_id} not found`,
+            );
+          }
+
+          return this.variantRepository.create({
+            ...variant,
+            product: savedProduct,
+            size,
+          });
+        }),
+      );
+
+      await this.variantRepository.save(preparedVariants);
+    }
+
+    const productWithVariants = await this.productRepository.findOne({
+      where: { id: savedProduct.id },
+      relations: ['variants'],
+    });
+
+    return instanceToPlain(productWithVariants);
   }
 
   async findAll(): Promise<any> {
@@ -55,23 +91,29 @@ export class ProductService {
     return instanceToPlain(product);
   }
 
-async update(id: string, updateDto: UpdateProductDto): Promise<{ message: string; updatedProduct: Product }> {
-  const product = await this.productRepository.findOneBy({ id });
+  async update(
+    id: string,
+    updateDto: UpdateProductDto,
+  ): Promise<{ message: string; updatedProduct: Product }> {
+    const product = await this.productRepository.findOneBy({ id });
 
-  if (!product) {
-    throw new NotFoundException(`Product with id ${id} not found`);
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+
+    const updatedProduct = await this.productRepository.save({
+      ...product,
+      ...updateDto,
+    });
+
+    return {
+      message: `Product with id ${id} updated successfully`,
+      updatedProduct,
+    };
   }
 
-  const updatedProduct = await this.productRepository.save({ ...product, ...updateDto });
-
-  return {
-    message: `Product with id ${id} updated successfully`,
-    updatedProduct,
-  };
-}
-
   async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.productRepository.findOneBy({id});
+    const exists = await this.productRepository.findOneBy({ id });
     if (!exists) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
