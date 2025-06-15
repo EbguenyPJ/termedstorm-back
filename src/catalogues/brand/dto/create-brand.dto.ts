@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsString, IsOptional, IsBoolean, IsUUID, IsNotEmpty, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsUUID,
+  IsNotEmpty,
+  IsUrl,
+} from 'class-validator';
 
 export class CreateBrandDto {
   @ApiProperty({ example: 'nike' })

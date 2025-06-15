@@ -43,11 +43,8 @@
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-<<<<<<< HEAD
-    "stripe": "^18.2.1"
-=======
+    "stripe": "^18.2.1",
     "swagger-ui-express": "^5.0.1"
->>>>>>> cd8e4efefb8e00c312b3b8229db8eb2d2494dd20
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

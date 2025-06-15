@@ -1,5 +1,5 @@
-import { Client } from 'src/modules/temp-entities/client.placeholder.entity';
-import { Employee } from 'src/modules/temp-entities/employee.placeholder.entity';
+import { Client } from 'src/modules/users/entities/client.entity';
+import { Employee } from 'src/modules/users/entities/employee.entity';
 import {
   Column,
   Entity,
@@ -12,7 +12,6 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { OrderDetail } from './orderDetail.entity';
-import { PaymentMethod } from 'src/catalogues/paymentMethod/entities/payment-method.entity';
 
 @Entity({ name: 'tw_orders' })
 export class Order {
@@ -54,7 +53,7 @@ export class Order {
   // @JoinColumn({ name: 'cash_reconciliations_relation' })
   // cashReconciliations: CashReconciliations;
 
-  @ManyToOne(() => PaymentMethod)
-  @JoinColumn({ name: 'payment_method_relation' })
-  paymentMethod: PaymentMethod;
+  //   @ManyToOne(() => PaymentMethod)
+  //   @JoinColumn({ name: 'payment_method_relation' })
+  //   paymentMethod: PaymentMethod;
 }
