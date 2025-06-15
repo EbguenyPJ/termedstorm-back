@@ -33,22 +33,8 @@ export class StripeService {
     }
     return this.stripe.customers.create({ email, name });
   }
-
-  async attachPaymentMethod(customerId: string, paymentMethodId: string) {
-    return this.stripe.paymentMethods.attach(paymentMethodId, {
-      customer: customerId,
-    });
-  }
-
-  async updateCustomerDefaultPaymentMethod(
-    customerId: string,
-    paymentMethodId: string,
-  ) {
-    return this.stripe.customers.update(customerId, {
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    });
+  async retrieveCustomer(id: string): Promise<Stripe.Customer> {
+    return this.stripe.customers.retrieve(id) as Promise<Stripe.Customer>;
   }
 
   async createCheckoutSession(
@@ -56,6 +42,7 @@ export class StripeService {
     metadata: Stripe.MetadataParam,
     successUrl: string,
     cancelUrl: string,
+    customerId: string,
   ) {
     return this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -64,6 +51,7 @@ export class StripeService {
       mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
+      customer: customerId,
     });
   }
 
@@ -91,14 +79,34 @@ export class StripeService {
     return this.stripe.webhooks.constructEvent(body, signature, webhookSecret);
   }
 
-  async cancelSubscription(subscriptionId: string) {
-    return this.stripe.subscriptions.cancel(subscriptionId);
+  async createSubscriptionCheckoutSession(
+    customerId: string,
+    priceId: string,
+    successUrl: string,
+    cancelUrl: string,
+  ): Promise<Stripe.Checkout.Session> {
+    return this.stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
   }
 
-  async retrieveSubscription(
-    subscriptionId: string,
-  ): Promise<Stripe.Subscription> {
-    this.logger.log(`Recuperando suscripción de Stripe: ${subscriptionId}`);
-    return this.stripe.subscriptions.retrieve(subscriptionId);
+  async cancelSubscription(id: string): Promise<Stripe.Subscription> {
+    this.logger.log(`Cancelando suscripción de Stripe: ${id}`);
+    return this.stripe.subscriptions.cancel(id);
+  }
+
+  async retrieveSubscription(id: string): Promise<Stripe.Subscription> {
+    return this.stripe.subscriptions.retrieve(id);
+  }
+
+  async listInvoices(
+    params: Stripe.InvoiceListParams,
+  ): Promise<Stripe.ApiList<Stripe.Invoice>> {
+    return this.stripe.invoices.list(params);
   }
 }

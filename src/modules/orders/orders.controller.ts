@@ -10,6 +10,7 @@ import {
   Param,
   ParseUUIDPipe,
   Put,
+  Delete,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -49,34 +50,37 @@ export class OrdersController {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        this.logger.log(`Procesando pago único para la sesión: ${session.id}`);
-        await this.ordersService.createOrderFromStripeSession(session);
+        if (session.mode === 'subscription') {
+          this.logger.log(`Checkout de Suscripción completado.`);
+          await this.subscriptionsService.handleSubscriptionWebhook(event);
+        } else if (session.mode === 'payment') {
+          this.logger.log(`Checkout de Pago Único completado.`);
+          await this.ordersService.createOrderFromStripeSession(session);
+        }
         break;
       }
-      case 'invoice.paid': {
-        const invoice = event.data.object as Stripe.Invoice;
-        this.logger.log(`Factura pagada, activando membresía: ${invoice.id}`);
-        await this.subscriptionsService.handleSuccessfulPayment(invoice);
-        break;
-      }
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        this.logger.error(`Falló el pago de la factura: ${invoice.id}`);
 
-        await this.subscriptionsService.handleSubscriptionPaymentFailure(
-          invoice,
+      case 'invoice.paid':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted':
+      case 'invoice.payment_failed': {
+        this.logger.log(
+          `Evento de ciclo de vida de suscripción recibido: ${event.type}. `,
         );
+        await this.subscriptionsService.handleSubscriptionWebhook(event);
         break;
       }
-      default:
+
+      default: {
         this.logger.warn(`Evento de webhook no manejado: ${event.type}`);
+      }
     }
 
     return { received: true };
   }
 
   @Get(':id')
-  findOrderById(@Param('id', new ParseUUIDPipe()) id: string) {
+  findOrderById(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordersService.findOneById(id);
   }
 
@@ -91,5 +95,10 @@ export class OrdersController {
     @Body() updateOrderDto: UpdateOrderDto,
   ) {
     return this.ordersService.update(id, updateOrderDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.ordersService.delete(id);
   }
 }

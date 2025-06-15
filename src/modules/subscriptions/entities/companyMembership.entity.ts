@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToOne,
 } from 'typeorm';
 import { Membership } from './membership.entity';
 
@@ -20,4 +21,8 @@ export class CompanyMembership {
   @ManyToOne(() => Membership)
   @JoinColumn({ name: 'tw_membership_relation' })
   membresia: Membership;
+
+  // @OneToOne(() => Employee)
+  // @JoinColumn({ name: 'employee_id' })
+  // employee: Employee;
 }

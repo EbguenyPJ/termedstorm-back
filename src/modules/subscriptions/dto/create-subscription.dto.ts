@@ -7,13 +7,5 @@ export class CreateSubscriptionDto {
 
   @IsString()
   @IsNotEmpty()
-  name: string;
-
-  @IsString()
-  @IsNotEmpty()
   price_id: string; // id que tengo en la nota q saque del dashboard de stripe
-
-  @IsString()
-  @IsNotEmpty()
-  payment_method_id: string;
 }
