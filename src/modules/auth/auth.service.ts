@@ -17,6 +17,7 @@ import { User } from '../users/entities/user.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { Client } from '../users/entities/client.entity';
 import { Role } from '../roles/entities/role.entity';
+import { stringify } from 'querystring';
 
 @Injectable()
 export class AuthService {
@@ -168,11 +169,16 @@ export class AuthService {
   private createJwtPayload(
     user: User,
     fixedRole?: 'CLIENT',
-  ): { sub: string; email: string; roles: string[] } {
+  ): { sub: string; email: string; name: string; roles: string[] } {
     const roles = fixedRole
       ? [fixedRole]
       : user.employee.roles.map((role) => role.name);
-    return { sub: user.id, email: user.email, roles };
+    return {
+      sub: user.id,
+      email: user.email,
+      name: `${user.first_name} ${user.last_name}`,
+      roles,
+    };
   }
 
   private async registerUserWithRole(
