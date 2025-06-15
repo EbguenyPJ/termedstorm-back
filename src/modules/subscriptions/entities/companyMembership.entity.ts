@@ -9,6 +9,7 @@ import {
   OneToOne,
 } from 'typeorm';
 import { Membership } from './membership.entity';
+import { Employee } from 'src/modules/users/entities/employee.entity';
 
 @Entity({ name: 'tw_company_membership' })
 export class CompanyMembership {
@@ -22,7 +23,7 @@ export class CompanyMembership {
   @JoinColumn({ name: 'tw_membership_relation' })
   membresia: Membership;
 
-  // @OneToOne(() => Employee)
-  // @JoinColumn({ name: 'employee_id' })
-  // employee: Employee;
+  @OneToOne(() => Employee)
+  @JoinColumn({ name: 'employee_id' })
+  employee: Employee;
 }

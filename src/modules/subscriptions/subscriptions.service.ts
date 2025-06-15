@@ -9,6 +9,11 @@ import { Membership } from './entities/membership.entity';
 import { MembershipType } from './entities/membershipType.entity';
 import Stripe from 'stripe';
 import { CompanyMembership } from './entities/companyMembership.entity';
+import { User } from '../users/entities/user.entity';
+import { Client } from '../users/entities/client.entity';
+import { Employee } from '../users/entities/employee.entity';
+import { MembershipStatus } from 'src/catalogues/MembershipStatus/entities/membership-status.entity';
+
 
 @Injectable()
 export class SubscriptionsService {
@@ -52,7 +57,7 @@ export class SubscriptionsService {
     if (user.client) {
       membership = await this.dataSource.getRepository(Membership).findOne({
         where: { client: { id: user.client.id } },
-        relations: ['status'],
+        relations: ['client', 'status'],
       });
     } else if (user.employee) {
       membership = await this.dataSource.getRepository(Membership).findOne({

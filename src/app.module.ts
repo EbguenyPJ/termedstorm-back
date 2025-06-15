@@ -14,6 +14,7 @@ import { ProductModule } from './modules/products/product.module';
 import { ProductVariantModule } from './modules/productsVariant/product-variant.module';
 import { AuditModule } from './modules/auditModification/audit.module';
 import { SizeModule } from './modules/sizeProduct/size-product.module';
+import { MembershipStatusModule } from './catalogues/MembershipStatus/membership-status.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { SizeModule } from './modules/sizeProduct/size-product.module';
     ProductVariantModule,
     AuditModule,
     SizeModule,
+    MembershipStatusModule
   ],
   controllers: [],
   providers: [],

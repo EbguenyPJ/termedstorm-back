@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { User } from '../temp-entities/users.placeholder.entity';
+import { User } from '../users/entities/user.entity';
 import { DataSource } from 'typeorm';
 import { PortalSessionDto } from './dto/portal-session.dto';
 import { Membership } from './entities/membership.entity';

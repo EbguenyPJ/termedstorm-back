@@ -11,6 +11,8 @@ import {
 } from 'typeorm';
 import { CompanyMembership } from './companyMembership.entity';
 import { MembershipType } from './membershipType.entity';
+import { Client } from 'src/modules/users/entities/client.entity';
+import { MembershipStatus } from 'src/catalogues/MembershipStatus/entities/membership-status.entity';
 
 @Entity({ name: 'tw_membership' })
 export class Membership {
@@ -33,13 +35,13 @@ export class Membership {
   @JoinColumn({ name: 'tc_membership_type_relation' })
   type: MembershipType;
 
-  // @ManyToOne(() => MembershipStatus)
-  // @JoinColumn({ name: 'tc_membership_status_relation' })
-  // status: MembershipStatus;
+  @ManyToOne(() => MembershipStatus)
+  @JoinColumn({ name: 'tc_membership_status_relation' })
+  status: MembershipStatus;
 
-  // @ManyToOne(() => Client)
-  // @JoinColumn({ name: 'tw_clients_relation' })
-  // client: Client;
+  @ManyToOne(() => Client)
+  @JoinColumn({ name: 'tw_clients_relation' })
+  client: Client;
 
   @OneToOne(() => CompanyMembership)
   @JoinColumn({ name: 'tw_company_membership_relation' })

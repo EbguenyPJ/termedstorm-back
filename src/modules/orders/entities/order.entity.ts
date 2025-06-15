@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { OrderDetail } from './orderDetail.entity';
 import { Audit } from 'src/audits/audit.entity';
+import { TypeOfPayment } from 'src/modules/type-of-payment/type-of-payment.entity';
 
 @Entity({ name: 'tw_orders' })
 export class Order {
@@ -42,7 +43,7 @@ export class Order {
 
   @ManyToOne(() => Client, { nullable: true })
   @JoinColumn({ name: 'tw_clients_relation' })
-  client: Client;
+  client: Client | null;
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'tw_employee_relation' })
@@ -51,6 +52,10 @@ export class Order {
   @ManyToOne(() => Audit, { nullable: true })
   @JoinColumn({ name: 'audit_id' })
   audit?: Audit;
+
+  @ManyToOne(() => TypeOfPayment)
+@JoinColumn({ name: 'type_of_payment_id' })
+type_of_payment: TypeOfPayment;
 
   //nombre de cashReconciliations ok ??
 

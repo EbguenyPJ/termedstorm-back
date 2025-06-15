@@ -12,6 +12,10 @@ import { OrderDetail } from './entities/orderDetail.entity';
 import Stripe from 'stripe';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { ProductService } from '../products/product.service';
+import { Client } from '../users/entities/client.entity';
+import { Employee } from '../users/entities/employee.entity';
+import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
 
 @Injectable()
 export class OrdersService {
@@ -20,7 +24,7 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
     private readonly dataSource: DataSource,
     private readonly stripeService: StripeService,
-    //private readonly productService: ProductService,
+    private readonly productService: ProductService,
   ) {}
 
   async processNewOrder(dto: CreateOrderDto) {

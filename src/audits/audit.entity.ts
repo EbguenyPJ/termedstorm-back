@@ -14,7 +14,7 @@ export class Audit {
   id: number;
 
   @Column({
-    name: 'total_ventas_efectivo',
+    name: 'total_c_efectivo',
     type: 'decimal',
     precision: 10,
     scale: 2,
