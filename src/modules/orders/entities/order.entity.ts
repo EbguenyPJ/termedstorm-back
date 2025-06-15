@@ -12,6 +12,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { OrderDetail } from './orderDetail.entity';
+import { Audit } from 'src/audits/audit.entity';
 
 @Entity({ name: 'tw_orders' })
 export class Order {
@@ -46,6 +47,10 @@ export class Order {
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'tw_employee_relation' })
   employee: Employee;
+
+  @ManyToOne(() => Audit, { nullable: true })
+  @JoinColumn({ name: 'audit_id' })
+  audit?: Audit;
 
   //nombre de cashReconciliations ok ??
 

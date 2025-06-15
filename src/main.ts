@@ -2,11 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { loggerGlobal } from './middlewares/logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
-<<<<<<< HEAD
 import * as cookieParser from 'cookie-parser';
-=======
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
->>>>>>> cd8e4efefb8e00c312b3b8229db8eb2d2494dd20
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -16,11 +13,8 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-<<<<<<< HEAD
-  app.use(cookieParser());
-=======
 
-const swaggerConfig = new DocumentBuilder()
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('NIVO POS API')
     .setVersion('1.0.0')
     .setDescription(
@@ -29,10 +23,11 @@ const swaggerConfig = new DocumentBuilder()
     .addBearerAuth()
     .build();
 
-    const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api', app, document);
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, document);
 
->>>>>>> cd8e4efefb8e00c312b3b8229db8eb2d2494dd20
+  app.use(cookieParser());
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
