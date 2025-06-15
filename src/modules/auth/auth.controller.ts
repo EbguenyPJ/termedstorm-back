@@ -136,4 +136,10 @@ export class AuthController {
     response.clearCookie('access_token');
     return { message: 'Logout successful' };
   }
+
+  @Get('/me')
+  @UseGuards(AuthGuard('jwt'))
+  getProfile(@Req() req: Request) {
+    return req.user;
+  }
 }
