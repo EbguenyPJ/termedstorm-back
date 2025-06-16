@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { Membership } from './membership.entity';
+import { Membership } from '../../membership/entities/membership.entity';
 
 @Entity({ name: 'tc_membership_type' })
 export class MembershipType {

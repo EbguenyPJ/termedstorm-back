@@ -9,8 +9,8 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { CompanyMembership } from './companyMembership.entity';
-import { MembershipType } from './membershipType.entity';
+import { CompanyMembership } from '../../membershipTypes/entities/companyMembership.entity';
+import { MembershipType } from '../../membershipTypes/entities/membershipType.entity';
 import { Client } from 'src/modules/users/entities/client.entity';
 import { MembershipStatus } from 'src/catalogues/MembershipStatus/entities/membership-status.entity';
 

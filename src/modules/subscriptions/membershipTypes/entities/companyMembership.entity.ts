@@ -8,7 +8,7 @@ import {
   DeleteDateColumn,
   OneToOne,
 } from 'typeorm';
-import { Membership } from './membership.entity';
+import { Membership } from '../../membership/entities/membership.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
 
 @Entity({ name: 'tw_company_membership' })

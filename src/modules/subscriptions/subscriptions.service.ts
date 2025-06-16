@@ -5,15 +5,15 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { StripeService } from '../stripe/stripe.service';
-import { Membership } from './entities/membership.entity';
-import { MembershipType } from './entities/membershipType.entity';
+import { Membership } from './membership/entities/membership.entity';
+import { MembershipType } from './membershipTypes/entities/membershipType.entity';
 import Stripe from 'stripe';
-import { CompanyMembership } from './entities/companyMembership.entity';
+import { CompanyMembership } from './membershipTypes/entities/companyMembership.entity';
 import { User } from '../users/entities/user.entity';
 import { Client } from '../users/entities/client.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { MembershipStatus } from 'src/catalogues/MembershipStatus/entities/membership-status.entity';
-
+import { CreateSubscriptionDto } from './create-subscription.dto';
 
 @Injectable()
 export class SubscriptionsService {
@@ -24,19 +24,23 @@ export class SubscriptionsService {
     private readonly stripeService: StripeService,
   ) {}
 
-  async createSubscriptionCheckout(priceId: string, user: User) {
+  async createSubscriptionCheckout(dto: CreateSubscriptionDto) {
+    const { email, price_id, first_name, last_name } = dto;
+    const customerName =
+      first_name && last_name ? `${first_name} ${last_name}` : email;
+
     const stripeCustomer = await this.stripeService.findOrCreateCustomer(
-      user.email,
-      user.first_name,
+      email,
+      customerName,
     );
 
-    const successUrl = 'https://www.google.com/'; // aca van las paginas de success o cancel que nos den desde el front
-    const cancelUrl = 'https://www.google.com/';
+    const successUrl = 'http://AcaPonerPagina/pago-exitoso';
+    const cancelUrl = 'http://AcaPonerPagina/pago-cancelado';
 
     const checkoutSession =
       await this.stripeService.createSubscriptionCheckoutSession(
         stripeCustomer.id,
-        priceId,
+        price_id,
         successUrl,
         cancelUrl,
       );
@@ -57,16 +61,29 @@ export class SubscriptionsService {
     if (user.client) {
       membership = await this.dataSource.getRepository(Membership).findOne({
         where: { client: { id: user.client.id } },
-        relations: ['client', 'status'],
+        relations: ['status'],
+        order: { updated_at: 'DESC' },
       });
     } else if (user.employee) {
       membership = await this.dataSource.getRepository(Membership).findOne({
         where: { company_membership: { employee: { id: user.employee.id } } },
         relations: ['status'],
+        order: { updated_at: 'DESC' },
       });
     }
 
-    return membership?.status?.membershipStatus === 'active';
+    if (!membership || !membership.status) {
+      return false;
+    }
+
+    const statusIsActive = membership.status.isActive;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expirationDate = new Date(membership.expiration_date);
+    const isDateValid = expirationDate >= today;
+
+    return statusIsActive && isDateValid;
   }
 
   async handleSubscriptionWebhook(event: Stripe.Event) {
@@ -296,7 +313,7 @@ export class SubscriptionsService {
         email: email,
         first_name: nameParts.shift() || 'Usuario',
         last_name: nameParts.join(' ') || 'Stripe',
-        password: `placeholder_${crypto.randomUUID()}`,
+        password: 'RandomPassword',
       });
       return em.save(newUser);
     });

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CreateOrderDto, ProductOrderDto } from './dto/create-order.dto';
@@ -19,6 +20,7 @@ import { ProductVariant } from '../productsVariant/entities/product-variant.enti
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
@@ -116,6 +118,10 @@ export class OrdersService {
   async createOrderFromStripeSession(
     session: Stripe.Checkout.Session,
   ): Promise<Order> {
+    this.logger.debug(`--- DENTRO DE CREATE ORDER FROM STRIPE SESSION ---`, {
+      sessionId: session.id,
+    });
+
     if (
       !session.metadata ||
       !session.metadata.employeeId ||
@@ -133,6 +139,10 @@ export class OrdersService {
     } = session.metadata;
 
     const orderProducts: ProductOrderDto[] = JSON.parse(productsJSON);
+
+    this.logger.debug(
+      `Iniciando transacción para crear orden para empleado ${employeeId}.`,
+    );
 
     const variantIds = orderProducts.map((p) => p.variant_id);
     const dbVariants =
@@ -223,6 +233,7 @@ export class OrdersService {
         subtotal_order: variant.product.sale_price * item.quantity,
       });
     });
+    this.logger.log(` Orden creada exitosamente desde Stripe.`);
 
     return entityManager.save(order);
   }

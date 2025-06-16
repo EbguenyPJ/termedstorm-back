@@ -15,6 +15,12 @@ import { ProductVariantModule } from './modules/productsVariant/product-variant.
 import { AuditModule } from './modules/auditModification/audit.module';
 import { SizeModule } from './modules/sizeProduct/size-product.module';
 import { MembershipStatusModule } from './catalogues/MembershipStatus/membership-status.module';
+import { Order } from './modules/orders/entities/order.entity';
+import { OrdersModule } from './modules/orders/orders.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { StripeModule } from './modules/stripe/stripe.module';
+import { MembershipTypesModule } from './modules/subscriptions/membershipTypes/membership-types.module';
+import { MembershipsModule } from './modules/subscriptions/membership/memberships.module';
 
 @Module({
   imports: [
@@ -38,7 +44,12 @@ import { MembershipStatusModule } from './catalogues/MembershipStatus/membership
     ProductVariantModule,
     AuditModule,
     SizeModule,
-    MembershipStatusModule
+    MembershipStatusModule,
+    OrdersModule,
+    SubscriptionsModule,
+    StripeModule,
+    MembershipTypesModule,
+    MembershipsModule,
   ],
   controllers: [],
   providers: [],

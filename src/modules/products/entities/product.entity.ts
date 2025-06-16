@@ -14,21 +14,25 @@ import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.en
 import { Brand } from 'src/catalogues/brand/entities/brand.entity';
 import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
 import { Exclude } from 'class-transformer';
+import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity('tw_products')
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', { 
-  length: 200 })
+  @Column('varchar', {
+    length: 200,
+  })
   name: string;
 
   @Column('text')
   description: string;
 
-  @Column('varchar', { 
-  length: 200, unique: true })
+  @Column('varchar', {
+    length: 200,
+    unique: true,
+  })
   code: string;
 
   @Column('text')
@@ -64,10 +68,10 @@ export class Product {
   @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants: ProductVariant[];
 
-  //   @ManyToOne(() => User)
-  //   @JoinColumn({ name: 'created_by' })
-  //   createdBy: User;
-  
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'created_by' })
+  createdBy: User;
+
   @Exclude()
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   created_at: Date;
