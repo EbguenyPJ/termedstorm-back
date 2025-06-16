@@ -34,8 +34,8 @@ export class AuthController {
     const accessToken = await this.authService.clientLogin(loginDto);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 día
     });
     return { message: 'Login successful' };
@@ -65,8 +65,8 @@ export class AuthController {
 
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
     response.redirect('http://localhost...');
@@ -93,9 +93,10 @@ export class AuthController {
     const accessToken = await this.authService.employeeLogin(loginDto);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      path: '/',
     });
     return { message: 'Login successful' };
   }
@@ -115,8 +116,8 @@ export class AuthController {
       await this.authService.validateAndLoginGoogleEmployee(userFromGoogle);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
     response.redirect('http://localhost...'); // URL del dashboard de empleados
