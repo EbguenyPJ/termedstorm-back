@@ -69,7 +69,7 @@ export class AuthController {
       sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
-    response.redirect('http://localhost...');
+    response.redirect('http://localhost:4000/auth/success?from=google&type=client');
   }
 
   //& --- RUTAS DE EMPLEADOS ---
@@ -120,7 +120,7 @@ export class AuthController {
       sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
-    response.redirect('http://localhost...'); // URL del dashboard de empleados
+    response.redirect('http://localhost:4000/auth/success?from=google&type=employee');
   }
 
   //% 1. Método login con jwt Token
