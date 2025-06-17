@@ -69,7 +69,9 @@ export class AuthController {
       sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
-    response.redirect('http://localhost:4000/auth/success?from=google&type=client');
+    response.redirect(
+      'https://nivoapp.vercel.app/auth/success?from=google&type=client',
+    );
   }
 
   //& --- RUTAS DE EMPLEADOS ---
@@ -93,7 +95,9 @@ export class AuthController {
     const accessToken = await this.authService.employeeLogin(loginDto);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production',
+      //secure: false, // <--- En desarrollo esto debe estar en false
+      // secure: process.env.NODE_ENV === 'production', <---- esto en desarrollo debe estar comentado
       sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
       path: '/',
@@ -116,11 +120,15 @@ export class AuthController {
       await this.authService.validateAndLoginGoogleEmployee(userFromGoogle);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production',
+      //secure: false, // <--- En desarrollo esto debe estar en false
+      // secure: process.env.NODE_ENV === 'production', <---- esto en desarrollo debe estar comentado
       sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
-    response.redirect('http://localhost:4000/auth/success?from=google&type=employee');
+    response.redirect(
+      'https://nivoapp.vercel.app/auth/success?from=google&type=employee',
+    );
   }
 
   //% 1. Método login con jwt Token
