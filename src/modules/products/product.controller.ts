@@ -1,13 +1,21 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from "@nestjs/common";
-import { ProductService } from "./product.service";
-import { CreateProductDto } from "./dto/create-product.dto";
-import { UpdateProductDto } from "./dto/update-product.dto";
-import { AutoAudit } from "../auditModification/decorator/audit-log.decorator";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { ProductService } from './product.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { AutoAudit } from '../auditModification/decorator/audit-log.decorator';
 
 @Controller('products')
 export class ProductController {
-  constructor(
-    private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService) {}
 
   @AutoAudit()
   @Post()
@@ -26,7 +34,10 @@ export class ProductController {
   }
 
   @Put(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateDto: UpdateProductDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateDto: UpdateProductDto,
+  ) {
     return this.productService.update(id, updateDto);
   }
 

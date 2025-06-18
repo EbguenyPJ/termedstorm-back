@@ -34,7 +34,10 @@ export class SubCategoryController {
   }
 
   @Put(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateSubCategoryDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateSubCategoryDto,
+  ) {
     return this.subCategoryService.update(id, dto);
   }
 

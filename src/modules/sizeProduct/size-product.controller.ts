@@ -34,7 +34,10 @@ export class SizeController {
   }
 
   @Patch(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateDto: UpdateSizeDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateDto: UpdateSizeDto,
+  ) {
     return this.sizeService.update(id, updateDto);
   }
 

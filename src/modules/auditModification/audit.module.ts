@@ -1,4 +1,3 @@
-
 import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditLog } from './entities/audit-log.entity';
@@ -14,10 +13,11 @@ import { CategoryModule } from 'src/catalogues/category/category.module';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([AuditLog]),
-ProductModule,
-CategoryModule
-],
+  imports: [
+    TypeOrmModule.forFeature([AuditLog]),
+    ProductModule,
+    CategoryModule,
+  ],
   providers: [
     AuditService,
     {
@@ -26,7 +26,10 @@ CategoryModule
     },
     {
       provide: 'ENTITY_SERVICES',
-      useFactory: (productService: ProductService, categoryService: CategoryService) => ({
+      useFactory: (
+        productService: ProductService,
+        categoryService: CategoryService,
+      ) => ({
         productService,
         categoryService,
       }),

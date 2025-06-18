@@ -34,7 +34,10 @@ export class BrandController {
   }
 
   @Put(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateBrandDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateBrandDto,
+  ) {
     return this.brandService.update(id, dto);
   }
 

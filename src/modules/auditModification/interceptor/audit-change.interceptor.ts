@@ -20,8 +20,14 @@ export class AutoAuditInterceptor implements NestInterceptor {
     private readonly entityServices: Record<string, any>,
   ) {}
 
-  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
-    const isAuditable = this.reflector.get<boolean>(AUTO_AUDIT_KEY, context.getHandler());
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
+    const isAuditable = this.reflector.get<boolean>(
+      AUTO_AUDIT_KEY,
+      context.getHandler(),
+    );
     if (!isAuditable) return next.handle();
 
     const request = context.switchToHttp().getRequest();
@@ -32,7 +38,8 @@ export class AutoAuditInterceptor implements NestInterceptor {
 
     const route = request.route.path; // Ej: /products/:id
     const baseSegment = route.split('/')[1]?.replace(/s$/, ''); // 'product'
-    const entityName = baseSegment.charAt(0).toUpperCase() + baseSegment.slice(1); // 'Product'
+    const entityName =
+      baseSegment.charAt(0).toUpperCase() + baseSegment.slice(1); // 'Product'
     const idField = 'id';
     const entityId = params[idField];
     const serviceName = `${baseSegment}Service`; // 'productService'
@@ -45,7 +52,10 @@ export class AutoAuditInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(async (response) => {
-        const employeeId = user?.id || user?.employeeId || '11111111-1111-1111-1111-111111111111';
+        const employeeId =
+          user?.id ||
+          user?.employeeId ||
+          '11111111-1111-1111-1111-111111111111';
 
         if (method === 'PUT') {
           await this.auditService.auditUpdate({
@@ -77,7 +87,7 @@ export class AutoAuditInterceptor implements NestInterceptor {
             });
           }
         }
-      })
+      }),
     );
   }
 }

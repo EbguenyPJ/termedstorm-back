@@ -34,7 +34,10 @@ export class CategoryController {
   }
 
   @Put(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateCategoryDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateCategoryDto,
+  ) {
     return this.categoryService.update(id, dto);
   }
 
