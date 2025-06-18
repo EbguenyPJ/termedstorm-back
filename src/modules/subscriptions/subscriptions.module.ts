@@ -3,7 +3,7 @@ import { SubscriptionsService } from './subscriptions.service';
 import { SubscriptionsController } from './subscriptions.controller';
 import { StripeModule } from '../stripe/stripe.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Client } from '../temp-entities/client.placeholder.entity';
+import { Client } from '../users/entities/client.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Client]), forwardRef(() => StripeModule)],
