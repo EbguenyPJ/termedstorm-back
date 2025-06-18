@@ -7,18 +7,21 @@ export class CutService {
   constructor(private readonly cutRepo: CutRepository) {}
 
   async create(createCutDto: Partial<CreateCutDto>, token: string) {
-    const employeeId = extractEmployeeIdFromToken(token); 
+    const employeeId = extractEmployeeIdFromToken(token);
     const unassignedAudits = await this.cutRepo.getUnassignedAudits();
 
     const auditCount = unassignedAudits.length;
-    const saleCount = unassignedAudits.reduce((acc, audit) => acc + audit.sale_count, 0);
+    const saleCount = unassignedAudits.reduce(
+      (acc, audit) => acc + audit.sale_count,
+      0,
+    );
     const totalAudits = unassignedAudits.reduce(
       (acc, audit) => acc + Number(audit.total_cash) || 0,
-      0
+      0,
     );
     const totalCashSales = unassignedAudits.reduce(
       (acc, audit) => acc + Number(audit.total_cash_sales || 0),
-      0
+      0,
     );
 
     const newCutData = {

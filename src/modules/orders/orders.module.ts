@@ -15,14 +15,7 @@ import { Client } from '../users/entities/client.entity';
 @Module({
   imports: [
     forwardRef(() => StripeModule),
-    TypeOrmModule.forFeature([
-      Order,
-      OrderDetail,
-      TypeOfPayment,
-      Audit,
-      Employee,
-      Client,
-    ]),
+    TypeOrmModule.forFeature([Order, OrderDetail, TypeOfPayment]),
     SubscriptionsModule,
     ProductModule,
   ],
