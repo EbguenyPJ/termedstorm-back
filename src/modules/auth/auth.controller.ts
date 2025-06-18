@@ -34,8 +34,8 @@ export class AuthController {
     const accessToken = await this.authService.clientLogin(loginDto);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // 'strict'
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 día
     });
     return { message: 'Login successful' };
@@ -65,8 +65,8 @@ export class AuthController {
 
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: false, // <--- En desarrollo esto debe estar en false    secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // 'strict'
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
     response.redirect(
@@ -96,9 +96,9 @@ export class AuthController {
     response.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       //secure: false, // <--- En desarrollo esto debe estar en false
       // secure: process.env.NODE_ENV === 'production', <---- esto en desarrollo debe estar comentado
-      sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
       path: '/',
     });
@@ -121,9 +121,9 @@ export class AuthController {
     response.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       //secure: false, // <--- En desarrollo esto debe estar en false
       // secure: process.env.NODE_ENV === 'production', <---- esto en desarrollo debe estar comentado
-      sameSite: 'lax', // 'strict'
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
     response.redirect(
