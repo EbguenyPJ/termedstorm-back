@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import typeorm from './config/typeorm';
+// import typeorm from './config/typeorm';
+import typeormConfig, { masterDbConfig } from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodosModule } from './modules/todos/todos.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -21,17 +22,21 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { MembershipTypesModule } from './modules/subscriptions/membershipTypes/membership-types.module';
 import { MembershipsModule } from './modules/subscriptions/membership/memberships.module';
 import { CutModule } from './cuts/cut.module';
+//! Master module
+import { MasterDataModule } from './master_data/master_data.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [typeorm],
+      load: [typeormConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => config.get('typeorm')!,
     }),
+    //! CONFIGURACIÓN BASE DE DATOS MAESTRA
+    TypeOrmModule.forRoot(masterDbConfig),
     TodosModule,
     AuthModule,
     RolesModule,
@@ -51,6 +56,8 @@ import { CutModule } from './cuts/cut.module';
     MembershipTypesModule,
     MembershipsModule,
     CutModule,
+    //! MasterDataModule (usa la conexión 'masterConnection')
+    MasterDataModule,
   ],
   controllers: [],
   providers: [],
