@@ -17,6 +17,8 @@ import { ProductService } from '../products/product.service';
 import { Client } from '../users/entities/client.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
+import { CancellationService } from '../cancellation/cancellation.service';
+import { CreateCancellationDto } from '../cancellation/dto/create-cancellation.dto';
 
 @Injectable()
 export class OrdersService {
@@ -27,6 +29,7 @@ export class OrdersService {
     private readonly dataSource: DataSource,
     private readonly stripeService: StripeService,
     private readonly productService: ProductService,
+    private readonly cancellationService: CancellationService,
   ) {}
 
   async processNewOrder(dto: CreateOrderDto) {
@@ -286,12 +289,55 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 
-  async delete(id: string): Promise<{ message: string }> {
-    const order = await this.orderRepository.findOneBy({ id });
-    if (!order) {
-      throw new NotFoundException(`Orden con id ${id} no encontrada`);
-    }
-    await this.orderRepository.delete(id);
-    return { message: `Orden  con id ${id} eliminado ` };
+  async cancelOrder(
+    orderId: string,
+    employeeId: string,
+    dto: CreateCancellationDto,
+  ): Promise<Order> {
+    return this.dataSource.transaction(async (entityManager) => {
+      const order = await entityManager.findOne(Order, {
+        where: { id: orderId },
+        relations: ['details', 'details.variant', 'cancellation'],
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Orden con Id ${orderId} no encontrada.`);
+      }
+
+      if (order.cancellation) {
+        throw new BadRequestException(
+          `La orden con Id ${orderId} ya fue cancelada.`,
+        );
+      }
+
+      for (const detail of order.details) {
+        if (detail.variant) {
+          await entityManager.increment(
+            ProductVariant,
+            { id: detail.variant.id },
+            'stock',
+            detail.total_amount_of_products,
+          );
+        }
+      }
+
+      const cancellation = await this.cancellationService.create(
+        {
+          order,
+          employeeId: employeeId,
+          reasonId: dto.cancellationReasonId,
+          comment: dto.comment,
+        },
+        entityManager,
+      );
+
+      order.cancellation = cancellation;
+
+      this.logger.log(
+        `Orden ${orderId} cancelada por empleado ${employeeId}. Stock restituido.`,
+      );
+
+      return entityManager.save(order);
+    });
   }
 }

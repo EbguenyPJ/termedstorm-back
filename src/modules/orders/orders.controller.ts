@@ -11,6 +11,9 @@ import {
   ParseUUIDPipe,
   Put,
   Delete,
+  HttpCode,
+  UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -18,6 +21,9 @@ import { StripeService } from '../stripe/stripe.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import Stripe from 'stripe';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { CreateCancellationDto } from '../cancellation/dto/create-cancellation.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Employee } from '../users/entities/employee.entity';
 
 @Controller('orders')
 export class OrdersController {
@@ -98,7 +104,25 @@ export class OrdersController {
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.ordersService.delete(id);
+  @HttpCode(200)
+  @UseGuards(AuthGuard('jwt'))
+  cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() createCancellationDto: CreateCancellationDto,
+    @Req() request: any,
+  ) {
+    const employee: Employee = request.user;
+
+    if (!employee) {
+      throw new UnauthorizedException(
+        'No se pudo identificar al empleado en la sesión.',
+      );
+    }
+
+    return this.ordersService.cancelOrder(
+      id,
+      employee.id,
+      createCancellationDto,
+    );
   }
 }

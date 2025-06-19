@@ -21,6 +21,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { MembershipTypesModule } from './modules/subscriptions/membershipTypes/membership-types.module';
 import { MembershipsModule } from './modules/subscriptions/membership/memberships.module';
 import { CutModule } from './cuts/cut.module';
+import { CancellationModule } from './modules/cancellation/cancellation.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CutModule } from './cuts/cut.module';
     MembershipTypesModule,
     MembershipsModule,
     CutModule,
+    CancellationModule,
   ],
   controllers: [],
   providers: [],
