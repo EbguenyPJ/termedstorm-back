@@ -24,6 +24,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { CreateCancellationDto } from '../cancellation/dto/create-cancellation.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Employee } from '../users/entities/employee.entity';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 @Controller('orders')
 export class OrdersController {
@@ -104,15 +105,12 @@ export class OrdersController {
   }
 
   @Delete(':id')
-  @HttpCode(200)
   @UseGuards(AuthGuard('jwt'))
   cancelOrder(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() createCancellationDto: CreateCancellationDto,
-    @Req() request: any,
+    @GetUser() employee: Employee,
   ) {
-    const employee: Employee = request.user;
-
     if (!employee) {
       throw new UnauthorizedException(
         'No se pudo identificar al empleado en la sesión.',
