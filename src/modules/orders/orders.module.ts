@@ -7,10 +7,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { OrderDetail } from './entities/orderDetail.entity';
 import { ProductModule } from '../products/product.module';
-import { Audit } from 'src/audits/audit.entity';
-import { Employee } from '../users/entities/employee.entity';
 import { TypeOfPayment } from '../type-of-payment/type-of-payment.entity';
-import { Client } from '../users/entities/client.entity';
+import { CancellationModule } from '../cancellation/cancellation.module';
+import { CancellationService } from '../cancellation/cancellation.service';
 
 @Module({
   imports: [
@@ -18,6 +17,7 @@ import { Client } from '../users/entities/client.entity';
     TypeOrmModule.forFeature([Order, OrderDetail, TypeOfPayment]),
     SubscriptionsModule,
     ProductModule,
+    CancellationModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

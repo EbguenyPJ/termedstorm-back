@@ -7,3 +7,5 @@ export const GetUser = createParamDecorator(
     return request.user;
   },
 );
+//? PREGUNTAR : creacion de decorador para  la IA me dijo q esta opcion era mejor y mas escalable (y profesional)
+//FIXME VER si se cambia o no

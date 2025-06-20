@@ -5,10 +5,8 @@ export class MembershipStatus {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', {
-    length: 100,
-  })
-  membershipStatus: string;
+  @Column({ length: 100 })
+  membershipStatus: string; //! active- cancelled - expired??
 
   @Column({ default: true })
   isActive: boolean;

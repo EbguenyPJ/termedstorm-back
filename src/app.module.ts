@@ -25,6 +25,7 @@ import { CutModule } from './cuts/cut.module';
 import { CancellationModule } from './modules/cancellation/cancellation.module';
 //! Master module
 import { MasterDataModule } from './master_data/master_data.module';
+import { CancellationReasonModule } from './catalogues/cancellationReason/cancellation-reason.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { MasterDataModule } from './master_data/master_data.module';
     MembershipsModule,
     CutModule,
     CancellationModule,
+    CancellationReasonModule,
     //! MasterDataModule (usa la conexión 'masterConnection')
     MasterDataModule,
   ],

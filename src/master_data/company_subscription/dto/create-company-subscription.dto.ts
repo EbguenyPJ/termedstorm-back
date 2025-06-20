@@ -22,8 +22,8 @@ enum PaymentStatus {
 
 export class CreateCompanySubscriptionDto {
   @IsUUID()
-  @IsNotEmpty()
-  customer_d: string; // ID de la zapatería a la que pertenece la suscripción
+  @IsNotEmpty() //? PREGUNTAR aca modifique id: decia customer_d , es incorrecto verdad ?
+  customer_id: string; // ID de la zapatería a la que pertenece la suscripción
 
   @IsUUID()
   @IsNotEmpty()

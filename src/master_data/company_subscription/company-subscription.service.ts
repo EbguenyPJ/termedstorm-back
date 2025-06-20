@@ -22,14 +22,14 @@ export class CompanySubscriptionService {
 
   findAll(): Promise<CompanySubscription[]> {
     return this.companySubscriptionRepository.find({
-      relations: ['customer', 'membershipType'],
+      relations: ['customer', 'membershipType'], //FIXME PREGUNTAR:  aca la relation no deberia ser con globalMembershipType?
     });
   }
 
   async findOne(id: string): Promise<CompanySubscription> {
     const subscription = await this.companySubscriptionRepository.findOne({
       where: { id },
-      relations: ['customer', 'membershipType'],
+      relations: ['customer', 'membershipType'], //FIXME PREGUNTAR:  aca la relation no deberia ser con globalMembershipType?
     });
     if (!subscription) {
       throw new NotFoundException(
@@ -37,6 +37,15 @@ export class CompanySubscriptionService {
       );
     }
     return subscription;
+  }
+
+  //? este es el metodo que cree para buscar suscripciones de empresas por id de stripe
+  async findOneByStripeId(
+    stripeId: string,
+  ): Promise<CompanySubscription | null> {
+    return this.companySubscriptionRepository.findOne({
+      where: { stripe_subscription_id: stripeId },
+    });
   }
 
   async findActiveSubscriptionForCustomer(

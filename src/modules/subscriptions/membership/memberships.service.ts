@@ -16,7 +16,6 @@ export class MembershipsService {
         type: true,
         status: true,
         client: { user: true },
-        company_membership: { employee: { user: true } },
       },
       order: { updated_at: 'DESC' },
     });
@@ -29,7 +28,6 @@ export class MembershipsService {
         type: true,
         status: true,
         client: { user: true },
-        company_membership: { employee: { user: true } },
       },
     });
     if (!membership) {

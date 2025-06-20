@@ -15,12 +15,9 @@ const tenantDbConfig: TypeOrmModuleOptions = {
   // entities: [__dirname + '/../**/*.entity.{ts,js}'],
   // migrations: ['dist/migrations/*{.ts,.js}'],
   autoLoadEntities: true,
-  dropSchema: true,
+  dropSchema: false,
   synchronize: true,
 };
-
-
-
 
 // --- Configuración para la Base de Datos MAESTRA ---
 import { Customer } from '../master_data/customer/entities/customer.entity';
@@ -35,7 +32,7 @@ export const masterDbConfig: TypeOrmModuleOptions = {
   password: process.env.MASTER_DB_PASSWORD || '',
   database: process.env.MASTER_DB_DATABASE || '',
   entities: [Customer, CompanySubscription, GlobalMembershipType],
-  dropSchema: true,
+  dropSchema: false,
   synchronize: true,
   name: 'masterConnection',
 };
@@ -47,4 +44,3 @@ export const masterDbConfig: TypeOrmModuleOptions = {
 
 export const typeormConfig = tenantDbConfig;
 export default registerAs('typeorm', () => typeormConfig);
-

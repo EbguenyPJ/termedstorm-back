@@ -29,7 +29,6 @@ export class CustomerService {
     return customer;
   }
 
-
   async findOneBySlug(slug: string): Promise<Customer> {
     const customer = await this.customerRepository.findOne({ where: { slug } });
     if (!customer) {
@@ -38,17 +37,22 @@ export class CustomerService {
     return customer;
   }
 
+  //? PREGUNTAR: agregue este metodo para buscar customers por email, ya que desde los metadatos de stripe recibo email
+  async findOneByEmail(email: string): Promise<Customer | null> {
+    return this.customerRepository.findOne({ where: { email } });
+  }
+
   async update(
     id: string,
     updateCustomerDto: UpdateCustomerDto,
   ): Promise<Customer | null> {
-    const customer = await this.findOne(id); 
+    const customer = await this.findOne(id);
     await this.customerRepository.update(id, updateCustomerDto);
-    return this.customerRepository.findOne({ where: { id } }); 
+    return this.customerRepository.findOne({ where: { id } });
   }
 
   async remove(id: string): Promise<void> {
     const customer = await this.findOne(id);
-    await this.customerRepository.softDelete(id); 
+    await this.customerRepository.softDelete(id);
   }
 }

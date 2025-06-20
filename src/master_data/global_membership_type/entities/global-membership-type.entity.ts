@@ -19,6 +19,10 @@ export class GlobalMembershipType {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  //? PREGUNTAR : esto lo modifique para que referencie el price id de stripe, es necesario tambien el price para mostrar el valor?
+  @Column({ name: 'stripe_price_id', length: 255, unique: true })
+  stripe_price_id: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 

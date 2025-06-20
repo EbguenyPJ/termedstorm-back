@@ -16,7 +16,7 @@ export class MembershipType {
   @Column({ type: 'varchar' })
   name: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ name: 'stripe_price_id', length: 255, unique: true })
   stripe_price_id: string;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })

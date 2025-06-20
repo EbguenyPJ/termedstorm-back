@@ -5,6 +5,7 @@ import { UpdateCancellationDto } from './dto/update-cancellation.dto';
 import { Cancellation } from './entities/cancellation.entity';
 import { Order } from '../orders/entities/order.entity';
 import { Employee } from '../users/entities/employee.entity';
+import { CancellationReason } from 'src/catalogues/cancellationReason/entities/cancellation-reason.entity';
 
 @Injectable()
 export class CancellationService {

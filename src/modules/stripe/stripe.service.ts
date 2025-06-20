@@ -84,6 +84,7 @@ export class StripeService {
     priceId: string,
     successUrl: string,
     cancelUrl: string,
+    metadata: Stripe.MetadataParam = {},
   ): Promise<Stripe.Checkout.Session> {
     return this.stripe.checkout.sessions.create({
       customer: customerId,
@@ -92,6 +93,7 @@ export class StripeService {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
+      metadata: metadata,
     });
   }
 

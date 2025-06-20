@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsIn,
+} from 'class-validator';
 
 export class CreateSubscriptionDto {
   @IsEmail()
@@ -7,7 +13,15 @@ export class CreateSubscriptionDto {
 
   @IsString()
   @IsNotEmpty()
-  price_id: string;
+  price_id: string; // aca va a tomar cualquier tipo de membresia, ya sea de cliente final o Company,
+
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['customer', 'client'])
+  context: 'customer' | 'client';
+
+  @IsOptional()
+  customer_id?: string;
 
   @IsString()
   @IsOptional()
