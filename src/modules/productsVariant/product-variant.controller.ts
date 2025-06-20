@@ -2,14 +2,16 @@ import { Controller, Get, Post, Body, Param, Delete, Put, ParseUUIDPipe } from '
 import { ProductVariantService } from './product-variant.service';
 import { CreateProductVariantDto } from './dto/create-product-variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
+import { Product } from '../products/entities/product.entity';
+import { EntityManager } from 'typeorm';
 
 @Controller('product-variants')
 export class ProductVariantController {
   constructor(private readonly productVariantService: ProductVariantService) {}
 
   @Post()
-  create(@Body() createDto: CreateProductVariantDto) {
-    return this.productVariantService.create(createDto);
+  create(@Body() createDto: CreateProductVariantDto, product: Product, manager: EntityManager) {
+    return this.productVariantService.create(createDto, product, manager);
   }
 
   @Get()

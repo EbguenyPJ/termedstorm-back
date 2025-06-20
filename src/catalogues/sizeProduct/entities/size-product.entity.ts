@@ -7,8 +7,8 @@ import {
   DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
-import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
 import { Exclude } from 'class-transformer';
+import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
 
 @Entity('tw_sizes')
 export class Size {
@@ -24,8 +24,8 @@ export class Size {
   @Column('float')
   size_cm: number;
 
-  @OneToMany(() => ProductVariant, (variant) => variant.size)
-  variants: ProductVariant[];
+  @OneToMany(() => VariantSize, (variantSize) => variantSize.size)
+  variantSizes: VariantSize[];
 
   @Exclude()
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })

@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { CreateVariantSizeDto } from "src/modules/variantSIzes/dto/create-variant-sizes.dto";
 
 export class CreateProductVariantDto {
   @ApiProperty({ example: 'Talla 40, color negro' })
@@ -7,22 +9,31 @@ export class CreateProductVariantDto {
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty({ example: 'Negro' })
+  @ApiProperty({ example: 'https://miapp.com/images/zapatillas-nike-running.jpg' })
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11'  })
   @IsString()
   @IsOptional()
-  color: string;
-
-  @ApiProperty({ example: 25 })
-  @IsNumber()
-  @IsNotEmpty()
-  stock: number;
-
-  @ApiProperty({ example: ['6a271a27-6fb1-4d7a-b921-674e244e3c8a'] })
-  @IsString()
-  @IsNotEmpty()
-  size_id: string;
+  color_id: string;
 
   @IsString()
   @IsOptional()
   product_id?: string;
+
+  @ApiProperty({
+    type: [CreateVariantSizeDto],
+    example: [
+      {
+        size_id: 'uuid-size',
+        stock: 10,
+      },
+    ],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateVariantSizeDto)
+  variantSizes: CreateVariantSizeDto[];
 }

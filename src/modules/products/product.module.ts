@@ -6,11 +6,15 @@ import { Product } from './entities/product.entity';
 import { Category } from 'src/catalogues/category/entities/category.entity';
 import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.entity';
 import { Brand } from 'src/catalogues/brand/entities/brand.entity';
-import { Size } from '../sizeProduct/entities/size-product.entity';
 import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
+import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
+import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
+import { ProductVariantModule } from '../productsVariant/product-variant.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Category, SubCategory, Brand, Size, ProductVariant])],
+  imports: [TypeOrmModule.forFeature([Product, Category, SubCategory, Brand, Color, ProductVariant, VariantSize]),
+ProductVariantModule
+],
   providers: [ProductService],
   controllers: [ProductController],
   exports: [ProductService]

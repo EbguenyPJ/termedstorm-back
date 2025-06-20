@@ -17,6 +17,7 @@ import { ProductService } from '../products/product.service';
 import { Client } from '../users/entities/client.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
+import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
 
 @Injectable()
 export class OrdersService {
@@ -163,80 +164,93 @@ export class OrdersService {
   }
 
   async buildOrderInTransaction(
-    data: {
-      employeeId: string;
-      clientEmail: string | null;
-      orderProducts: ProductOrderDto[];
-      dbVariants: ProductVariant[];
-      totalOrder: number;
-    },
-    entityManager: EntityManager,
-  ): Promise<Order> {
-    const { employeeId, clientEmail, orderProducts, dbVariants, totalOrder } =
-      data;
+  data: {
+    employeeId: string;
+    clientEmail: string | null;
+    orderProducts: ProductOrderDto[];
+    dbVariants: ProductVariant[];
+    totalOrder: number;
+  },
+  entityManager: EntityManager,
+): Promise<Order> {
+  const { employeeId, clientEmail, orderProducts, dbVariants, totalOrder } = data;
 
-    const employee = await entityManager.findOneBy(Employee, {
-      id: employeeId,
-    });
-    if (!employee)
-      throw new NotFoundException(
-        `Empleado con ID ${employeeId} no encontrado.`,
-      );
-
-    let client: Client | null = null;
-    if (clientEmail) {
-      client = await entityManager.findOne(Client, {
-        where: { user: { email: clientEmail } },
-        relations: ['user'],
-      });
-    }
-
-    const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
-
-    for (const item of orderProducts) {
-      const variant = variantMap.get(item.variant_id);
-      if (!variant)
-        throw new NotFoundException(
-          `Variante con ID ${item.variant_id} no encontrada.`,
-        );
-      if (variant.stock < item.quantity) {
-        throw new BadRequestException(
-          `Stock insuficiente para ${variant.product.name} (${variant.description}). Stock: ${variant.stock}.`,
-        );
-      }
-
-      await entityManager.decrement(
-        ProductVariant,
-        { id: variant.id },
-        'stock',
-        item.quantity,
-      );
-    }
-
-    const order = new Order();
-    order.employee = employee;
-    order.client = client ?? null;
-    order.total_order = totalOrder;
-    order.total_products = orderProducts.reduce(
-      (sum, item) => sum + item.quantity,
-      0,
-    );
-    order.date = new Date().toISOString().split('T')[0];
-    order.time = new Date().toTimeString().split(' ')[0];
-
-    order.details = orderProducts.map((item) => {
-      const variant = variantMap.get(item.variant_id)!;
-      return entityManager.create(OrderDetail, {
-        variant,
-        price: variant.product.sale_price,
-        total_amount_of_products: item.quantity,
-        subtotal_order: variant.product.sale_price * item.quantity,
-      });
-    });
-    this.logger.log(` Orden creada exitosamente desde Stripe.`);
-
-    return entityManager.save(order);
+  const employee = await entityManager.findOneBy(Employee, { id: employeeId });
+  if (!employee) {
+    throw new NotFoundException(`Empleado con ID ${employeeId} no encontrado.`);
   }
+
+  let client: Client | null = null;
+  if (clientEmail) {
+    client = await entityManager.findOne(Client, {
+      where: { user: { email: clientEmail } },
+      relations: ['user'],
+    });
+  }
+
+  const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
+
+  const variantSizeRecords: VariantSize[] = [];
+
+  for (const item of orderProducts) {
+    const variant = variantMap.get(item.variant_id);
+    if (!variant) {
+      throw new NotFoundException(`Variante con ID ${item.variant_id} no encontrada.`);
+    }
+
+    const variantSize = await entityManager.findOne(VariantSize, {
+      where: {
+        variantProduct: { id: item.variant_id },
+        size: { id: item.size_id },
+      },
+      relations: ['variantProduct', 'size'],
+    });
+
+    if (!variantSize) {
+      throw new NotFoundException(
+        `No se encontró relación de talla para la variante ${variant.description}.`,
+      );
+    }
+
+    if (variantSize.stock < item.quantity) {
+      throw new BadRequestException(
+        `Stock insuficiente para ${variant.product.name} (${variant.description}, talla ${variantSize.id}). Stock: ${variantSize.stock}.`,
+      );
+    }
+
+    await entityManager.decrement(
+      VariantSize,
+      { id: variantSize.id },
+      'stock',
+      item.quantity,
+    );
+
+    variantSizeRecords.push(variantSize);
+  }
+
+  const order = new Order();
+  order.employee = employee;
+  order.client = client ?? null;
+  order.total_order = totalOrder;
+  order.total_products = orderProducts.reduce((sum, item) => sum + item.quantity, 0);
+  order.date = new Date().toISOString().split('T')[0];
+  order.time = new Date().toTimeString().split(' ')[0];
+
+  order.details = orderProducts.map((item, index) => {
+    const variant = variantMap.get(item.variant_id)!;
+    return entityManager.create(OrderDetail, {
+      variant,
+      price: variant.product.sale_price,
+      total_amount_of_products: item.quantity,
+      subtotal_order: variant.product.sale_price * item.quantity,
+      // Puedes guardar la talla referenciando variantSizeRecords[index] si tu modelo lo permite
+    });
+  });
+
+  this.logger.log(`Orden creada exitosamente desde Stripe.`);
+
+  return entityManager.save(order);
+}
 
   async findOneById(id: string): Promise<Order> {
     const order = await this.orderRepository.findOne({

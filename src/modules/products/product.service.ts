@@ -4,13 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { ILike, In, IsNull, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { instanceToPlain } from 'class-transformer';
 import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
-import { Size } from '../sizeProduct/entities/size-product.entity';
+import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
+import { ProductVariantService } from '../productsVariant/product-variant.service';
+import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
+import { DataSource } from 'typeorm';
+import { Category } from 'src/catalogues/category/entities/category.entity';
+import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.entity';
+import { Brand } from 'src/catalogues/brand/entities/brand.entity';
+import { Employee } from 'src/modules/users/entities/employee.entity';
+import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
 
 @Injectable()
 export class ProductService {
@@ -18,9 +26,11 @@ export class ProductService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductVariant)
-    private readonly variantRepository: Repository<ProductVariant>,
-    @InjectRepository(Size)
-    private readonly sizeRepository: Repository<Size>,
+    private readonly productVariantRepository: Repository<ProductVariant>,
+    @InjectRepository(Color)
+    private readonly colorRepository: Repository<Color>,
+    private readonly variantService: ProductVariantService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async saveMany(data: CreateProductDto[]) {
@@ -28,54 +38,138 @@ export class ProductService {
   }
 
   async create(createDto: CreateProductDto): Promise<any> {
-    const { variants, ...productData } = createDto;
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const exist = await this.productRepository.findOne({
-      where: { code: productData.code },
-    });
-    if (exist) {
-      throw new BadRequestException(
-        `Product with code ${createDto.code} alredy exists`,
-      );
-    }
-    const product = this.productRepository.create(productData);
-    const savedProduct = await this.productRepository.save(product);
+    try {
+      const { variants, ...productData } = createDto;
 
-    if (variants && variants.length > 0) {
-      const preparedVariants = await Promise.all(
-        variants.map(async (variant) => {
-          const size = await this.sizeRepository.findOne({
-            where: { id: variant.size_id },
+      const existing = await queryRunner.manager.findOne(Product, {
+        where: [{ code: productData.code }, { name: productData.name }],
+      });
+
+      if (existing) {
+        throw new BadRequestException(
+          `Product already exists with ${
+            existing.code === productData.code ? 'code' : 'name'
+          }: ${existing.code === productData.code ? productData.code : productData.name}`,
+        );
+      }
+
+      const category = await queryRunner.manager.findOneBy(Category, {
+        id: productData.category_id,
+      });
+      const subCategory = await queryRunner.manager.findOneBy(SubCategory, {
+        id: productData.sub_category_id,
+      });
+      const brand = await queryRunner.manager.findOneBy(Brand, {
+        id: productData.brand_id,
+      });
+      const employee = await queryRunner.manager.findOneBy(Employee, {
+        id: productData.employee_id,
+      });
+
+      if (!category || !subCategory || !brand) {
+        throw new NotFoundException(
+          `Invalid foreign key: ${[
+            !category && 'category',
+            !subCategory && 'subCategory',
+            !brand && 'brand',
+            !employee && 'employee',
+          ]
+            .filter(Boolean)
+            .join(', ')}`,
+        );
+      }
+
+      const product = queryRunner.manager.create(Product, productData);
+      const savedProduct = await queryRunner.manager.save(product);
+
+      if (variants && variants.length > 0) {
+        for (const variant of variants) {
+          const color = await queryRunner.manager.findOneBy(Color, {
+            id: variant.color_id,
           });
-
-          if (!size) {
+          if (!color) {
             throw new NotFoundException(
-              `Size with id ${variant.size_id} not found`,
+              `Color with id ${variant.color_id} not found`,
             );
           }
 
-          return this.variantRepository.create({
+          const createdVariant = queryRunner.manager.create(ProductVariant, {
             ...variant,
             product: savedProduct,
-            size,
+            color,
           });
-        }),
-      );
 
-      await this.variantRepository.save(preparedVariants);
+          const savedVariant = await queryRunner.manager.save(createdVariant);
+
+          for (const vs of variant.variantSizes || []) {
+            const size = await queryRunner.manager.findOneBy(Size, {
+              id: vs.size_id,
+            });
+            if (!size) {
+              throw new NotFoundException(
+                `Size with id ${vs.size_id} not found`,
+              );
+            }
+
+            if (vs.stock <= 0) {
+              throw new BadRequestException('Stock must be greater than 0');
+            }
+
+            const variantSize = queryRunner.manager.create(VariantSize, {
+              size,
+              stock: vs.stock,
+              variantProduct: savedVariant,
+            });
+
+            await queryRunner.manager.save(variantSize);
+          }
+        }
+      }
+
+      await queryRunner.commitTransaction();
+
+      const productWithVariants = await this.productRepository.findOne({
+        where: { id: savedProduct.id },
+        relations: [
+          'variants',
+          'variants.color',
+          'variants.variantSizes',
+          'variants.variantSizes.size',
+        ],
+      });
+
+      return instanceToPlain(productWithVariants);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      if (error.code === '23503') {
+        const mensaje =
+          error.detail
+            ?.match(/\((.*?)\)=\((.*?)\)/)
+            ?.slice(1)
+            .join(': ') ?? 'Foreign key constraint violation';
+        throw new BadRequestException(`Invalid foreign key - ${mensaje}`);
+      }
+
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    const productWithVariants = await this.productRepository.findOne({
-      where: { id: savedProduct.id },
-      relations: ['variants'],
-    });
-
-    return instanceToPlain(productWithVariants);
   }
 
   async findAll(): Promise<any> {
     const products = await this.productRepository.find({
-      relations: ['category', 'subCategory', 'brand'],
+      relations: [
+        'category',
+        'subCategory',
+        'brand',
+        'variants',
+        'variants.variantSizes',
+      ],
     });
     return instanceToPlain(products);
   }
@@ -83,12 +177,50 @@ export class ProductService {
   async findOne(id: string): Promise<any> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['category', 'subCategory', 'brand'],
+      relations: [
+        'category',
+        'subCategory',
+        'brand',
+        'variants',
+        'variants.variantSizes',
+      ],
     });
     if (!product) {
       throw new NotFoundException(`Product with id ${id} not found`);
     }
     return instanceToPlain(product);
+  }
+
+  async searchProducts(query: string): Promise<any> {
+    if (!query || query.trim() === '') {
+      throw new BadRequestException('There are no results for your search');
+    }
+
+    const products = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.subCategory', 'subCategory')
+      .leftJoinAndSelect('product.brand', 'brand')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('variants.color', 'color')
+      .leftJoinAndSelect('variants.variantSizes', 'variantSizes')
+      .leftJoinAndSelect('variantSizes.size', 'size')
+      .where('product.name ILIKE :query', { query: `%${query}%` })
+      .orWhere('product.description ILIKE :query', { query: `%${query}%` })
+      .orWhere('product.code ILIKE :query', { query: `%${query}%` })
+      .orWhere('category.name ILIKE :query', { query: `%${query}%` })
+      .orWhere('subCategory.name ILIKE :query', { query: `%${query}%` })
+      .orWhere('brand.name ILIKE :query', { query: `%${query}%` })
+      .orWhere('variants.description ILIKE :query', { query: `%${query}%` })
+      .orWhere('color.color ILIKE :query', { query: `%${query}%` })
+      .orWhere('size.size_us::text ILIKE :query', { query: `%${query}%` })
+      .orWhere('size.size_eur::text ILIKE :query', { query: `%${query}%` })
+      .orWhere('size.size_cm::text ILIKE :query', { query: `%${query}%` })
+      .orWhere('product.sale_price::text ILIKE :query', { query: `%${query}%` })
+      .take(50)
+      .getMany();
+
+    return instanceToPlain(products);
   }
 
   async update(
@@ -126,7 +258,7 @@ export class ProductService {
       return [];
     }
 
-    return this.variantRepository.find({
+    return this.productVariantRepository.find({
       where: {
         id: In(ids),
       },

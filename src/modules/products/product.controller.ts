@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -21,6 +22,11 @@ export class ProductController {
   @Post()
   create(@Body() createDto: CreateProductDto) {
     return this.productService.create(createDto);
+  }
+
+  @Get('search')
+  async searchProducts(@Query('query') query: string) {
+    return this.productService.searchProducts(query);
   }
 
   @Get()

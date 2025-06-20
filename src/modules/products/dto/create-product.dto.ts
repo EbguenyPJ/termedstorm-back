@@ -27,11 +27,6 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   code: string;
-  
-  @ApiProperty({ example: 'https://miapp.com/images/zapatillas-nike-running.jpg' })
-  @IsOptional()
-  @IsString()
-  image?: string;
 
   @ApiProperty({ example: 200 })
   @IsNumber()
@@ -45,18 +40,22 @@ export class CreateProductDto {
 
   @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
+  @IsNotEmpty()
   category_id: string;
 
   @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
+  @IsNotEmpty()
   sub_category_id: string;
 
   @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
+  @IsNotEmpty()
   brand_id: string;
 
   @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11' })
   @IsUUID()
+  @IsNotEmpty()
   employee_id: string;
 
  @ApiProperty({
@@ -64,9 +63,8 @@ export class CreateProductDto {
   example: [
     {
       description: 'Zapatilla talla 40 color negro',
-      color: 'Negro',
-      stock: 15,
-      size_id: 'c735b720-84a0-4625-a94e-7f994f1e0a11',
+      image: "https://miapp.com/images/zapatillas-nike-negro.jpg",
+      color_id: 'c735b720-84a0-4625-a94e-7f994f1e0a11',
     }
   ]
 })
