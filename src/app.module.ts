@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 // import typeorm from './config/typeorm';
+//! Inicializar la conexión maestra
 import typeormConfig, { masterDbConfig } from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodosModule } from './modules/todos/todos.module';
@@ -24,6 +25,10 @@ import { MembershipsModule } from './modules/subscriptions/membership/membership
 import { CutModule } from './cuts/cut.module';
 //! Master module
 import { MasterDataModule } from './master_data/master_data.module';
+//! TenantConnectionModule
+import { TenantConnectionModule } from './common/tenant-connection/tenant-connection.module';
+
+
 
 @Module({
   imports: [
@@ -34,9 +39,14 @@ import { MasterDataModule } from './master_data/master_data.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => config.get('typeorm')!,
+      //$ Puedes comentar esta configuración temporalmente si solo quieres que la aplicación
+      //$ intente conectarse a la DB del tenant de forma dinámica en lugar de una por defecto.
+      //$ Si la dejas, la conexión 'default' seguirá apuntando a 'nivo'.
     }),
     //! CONFIGURACIÓN BASE DE DATOS MAESTRA
     TypeOrmModule.forRoot(masterDbConfig),
+    //! Importa el TenantConnectionModule
+    TenantConnectionModule,
     TodosModule,
     AuthModule,
     RolesModule,
@@ -63,3 +73,5 @@ import { MasterDataModule } from './master_data/master_data.module';
   providers: [],
 })
 export class AppModule {}
+
+
