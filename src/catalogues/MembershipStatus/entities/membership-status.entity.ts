@@ -6,8 +6,8 @@ export class MembershipStatus {
   id: string;
 
   @Column({ length: 100 })
-  membershipStatus: string; //! active- cancelled - expired??
+  membership_status: string; //! active- cancelled - expired - past-due??
 
   @Column({ default: true })
-  isActive: boolean;
+  is_active: boolean;
 }

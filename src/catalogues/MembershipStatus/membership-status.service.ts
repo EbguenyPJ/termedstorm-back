@@ -17,18 +17,18 @@ export class MembershipStatusService {
   ): Promise<MembershipStatus> {
     const userMemStatus = this.membershipStatusRepo.create({
       ...createDto,
-      isActive: createDto.isActive ?? true,
+      is_active: createDto.isActive ?? true,
     });
     return this.membershipStatusRepo.save(userMemStatus);
   }
 
   async findAll(): Promise<MembershipStatus[]> {
-    return this.membershipStatusRepo.find({ where: { isActive: true } });
+    return this.membershipStatusRepo.find({ where: { is_active: true } });
   }
 
   async findOne(id: string): Promise<MembershipStatus> {
     const userMemStatus = await this.membershipStatusRepo.findOne({
-      where: { id, isActive: true },
+      where: { id, is_active: true },
     });
     if (!userMemStatus)
       throw new NotFoundException(`MembershipStatus with id ${id} not found`);
@@ -39,7 +39,9 @@ export class MembershipStatusService {
     id: string,
     updateDto: UpdateMembershipStatusDto,
   ): Promise<{ message: string }> {
-    const exists = await this.membershipStatusRepo.findOne({ where: { id, isActive: true } });
+    const exists = await this.membershipStatusRepo.findOne({
+      where: { id, is_active: true },
+    });
     if (!exists)
       throw new NotFoundException(`MembershipStatus with id ${id} not found`);
     await this.membershipStatusRepo.update(id, updateDto);
@@ -47,10 +49,12 @@ export class MembershipStatusService {
   }
 
   async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.membershipStatusRepo.findOne({ where: { id, isActive: true } });
+    const exists = await this.membershipStatusRepo.findOne({
+      where: { id, is_active: true },
+    });
     if (!exists)
       throw new NotFoundException(`MembershipStatus with id ${id} not found`);
-    await this.membershipStatusRepo.update(id, { isActive: false });
+    await this.membershipStatusRepo.update(id, { is_active: false });
     return {
       message: `MembershipStatus with id ${id} deactivated successfully`,
     };

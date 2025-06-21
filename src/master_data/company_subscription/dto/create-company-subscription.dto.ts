@@ -34,6 +34,11 @@ export class CreateCompanySubscriptionDto {
   @MaxLength(255)
   stripe_subscription_id: string; // ID de la suscripción en Stripe
 
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  stripe_customer_id: string; // ID de cliente en stripe
+
   @IsDateString()
   @IsNotEmpty()
   start_date: Date;
@@ -50,5 +55,5 @@ export class CreateCompanySubscriptionDto {
   @IsString()
   @IsNotEmpty()
   @IsEnum(PaymentStatus)
-  paymentStatus: string;
+  payment_status: string;
 }

@@ -12,6 +12,7 @@ import Stripe from 'stripe';
 import { StripeService } from './stripe.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { OrdersService } from '../orders/orders.service';
+import { CompanySubscriptionService } from 'src/master_data/company_subscription/company-subscription.service';
 
 @Controller('stripe')
 export class StripeController {
@@ -21,6 +22,7 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly subscriptionsService: SubscriptionsService,
     private readonly ordersService: OrdersService,
+    private readonly companySubscriptionService: CompanySubscriptionService,
   ) {}
 
   @Post('webhook')
@@ -36,35 +38,56 @@ export class StripeController {
       throw new BadRequestException(`Webhook Error: ${err.message}`);
     }
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        if (session.mode === 'subscription') {
-          this.logger.log(`Webhook: Checkout de Suscripción completado.`);
-          await this.subscriptionsService.handleSubscriptionWebhook(event);
-        } else if (session.mode === 'payment') {
-          this.logger.log(`Webhook: Checkout de Pago Único completado.`);
-          await this.ordersService.createOrderFromStripeSession(session);
-        }
-        break;
-      }
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
 
-      case 'invoice.paid':
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted':
-      case 'invoice.payment_failed': {
-        this.logger.log(
-          `Webhook: Evento de ciclo de vida de suscripción recibido: ${event.type}.`,
-        );
-        await this.subscriptionsService.handleSubscriptionWebhook(event);
-        break;
-      }
-
-      default: {
-        this.logger.warn(`Webhook: Evento no manejado: ${event.type}`);
+      if (session.mode === 'payment') {
+        this.logger.log(`Webhook: Checkout de Pago Único completado.`);
+        await this.ordersService.createOrderFromStripeSession(session);
+        return { received: true };
       }
     }
 
+    try {
+      const context = await this.getEventContext(event);
+
+      if (context === 'customer') {
+        await this.companySubscriptionService.handleCompanyWebhook(event);
+      } else if (context === 'client') {
+        await this.subscriptionsService.handleClientWebhook(event);
+      } else {
+        this.logger.warn(
+          `Webhook de tipo ${event.type} recibido sin un contexto claro o relevante. No se puede procesar.`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error al procesar el contexto del evento ${event.id}: ${error.message}`,
+        error.stack,
+      );
+    }
+
     return { received: true };
+  }
+
+  private async getEventContext(event: Stripe.Event): Promise<string | null> {
+    if (event.type === 'checkout.session.completed') {
+      return (
+        (event.data.object as Stripe.Checkout.Session).metadata?.context ?? null
+      );
+    }
+    const subscriptionId = (event.data.object as any).subscription;
+    if (subscriptionId && typeof subscriptionId === 'string') {
+      const subscription =
+        await this.stripeService.retrieveSubscription(subscriptionId);
+      return subscription.metadata.context ?? null;
+    }
+    if ((event.data.object as any).object === 'subscription') {
+      return (
+        (event.data.object as Stripe.Subscription).metadata.context ?? null
+      );
+    }
+
+    return null;
   }
 }
