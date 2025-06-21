@@ -14,7 +14,7 @@ import { BrandModule } from './catalogues/brand/brand.module';
 import { ProductModule } from './modules/products/product.module';
 import { ProductVariantModule } from './modules/productsVariant/product-variant.module';
 import { AuditModule } from './audits/audit.module';
-import { SizeModule } from './modules/sizeProduct/size-product.module';
+import { SizeModule } from './catalogues/sizeProduct/size-product.module';
 import { MembershipStatusModule } from './catalogues/MembershipStatus/membership-status.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
@@ -22,6 +22,8 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { MembershipTypesModule } from './modules/subscriptions/membershipTypes/membership-types.module';
 import { MembershipsModule } from './modules/subscriptions/membership/memberships.module';
 import { CutModule } from './cuts/cut.module';
+import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
+import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
 import { CancellationModule } from './modules/cancellation/cancellation.module';
 //! Master module
 import { MasterDataModule } from './master_data/master_data.module';
@@ -58,10 +60,6 @@ import { CancellationReasonModule } from './catalogues/cancellationReason/cancel
     MembershipTypesModule,
     MembershipsModule,
     CutModule,
-    CancellationModule,
-    CancellationReasonModule,
-    //! MasterDataModule (usa la conexión 'masterConnection')
-    MasterDataModule,
   ],
   controllers: [],
   providers: [],

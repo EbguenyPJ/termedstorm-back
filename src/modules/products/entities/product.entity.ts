@@ -22,7 +22,7 @@ export class Product {
   id: string;
 
   @Column('varchar', {
-    length: 200,
+    length: 300,
   })
   name: string;
 
@@ -35,22 +35,19 @@ export class Product {
   })
   code: string;
 
-  @Column('text')
-  image: string;
-
   @Column('decimal', { precision: 10, scale: 2 })
   purchase_price: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
   sale_price: number;
 
-  @Column('uuid')
+  @Column({ type: 'uuid' })
   category_id: string;
 
-  @Column('uuid')
+  @Column({ type: 'uuid' })
   sub_category_id: string;
 
-  @Column('uuid')
+  @Column({ type: 'uuid' })
   brand_id: string;
 
   @ManyToOne(() => Category)
@@ -69,8 +66,8 @@ export class Product {
   variants: ProductVariant[];
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
-  createdBy: User;
+  @JoinColumn({ name: 'employee_id' })
+  employee: User;
 
   @Exclude()
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })

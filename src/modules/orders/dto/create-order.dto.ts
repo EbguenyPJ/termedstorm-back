@@ -18,6 +18,10 @@ export class ProductOrderDto {
 
   @IsInt()
   quantity: number;
+
+   @IsUUID()
+  @IsNotEmpty()
+  size_id: string;
 }
 
 export class CreateOrderDto {

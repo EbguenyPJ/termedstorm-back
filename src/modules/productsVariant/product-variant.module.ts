@@ -3,12 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductVariant } from './entities/product-variant.entity';
 import { ProductVariantService } from './product-variant.service';
 import { ProductVariantController } from './product-variant.controller';
-import { Size } from '../sizeProduct/entities/size-product.entity';
+import { Size } from '../../catalogues/sizeProduct/entities/size-product.entity';
 import { Product } from '../products/entities/product.entity';
+import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
+import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProductVariant, Size, Product])],
+  imports: [TypeOrmModule.forFeature([ProductVariant, Size, Color, Product, VariantSize])],
   controllers: [ProductVariantController],
   providers: [ProductVariantService],
+  exports: [ProductVariantService]
 })
 export class ProductVariantModule {}
