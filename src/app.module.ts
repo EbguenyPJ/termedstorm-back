@@ -4,6 +4,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 //! Inicializar la conexión maestra
 import typeormConfig, { masterDbConfig } from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
+//FIXME Importa la plantilla del tenant también(rEVISAR NOMBRES DE IMPORTACIÓN EN CASO DE SER NECESARIO)
+import typeormConfigAlias, { tenantDbConfigTemplate } from './config/typeorm'; 
+
 import { TodosModule } from './modules/todos/todos.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
@@ -28,20 +31,23 @@ import { MasterDataModule } from './master_data/master_data.module';
 //! TenantConnectionModule
 import { TenantConnectionModule } from './common/tenant-connection/tenant-connection.module';
 
-
-
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [typeormConfig],
+      load: [typeormConfigAlias],
     }),
+    //HACK Esta conexión por defecto ('nivo') se puede mantener temporalmente para pruebas
+    //$ o en caso de tener rutas que NO están ligadas a un tenant específico (ej. la ruta de login
+    //$ para los empleados de las zapaterías, antes de que se establezca el contexto del tenant).
+    //$ Sin embargo, para la mayoría de los módulos de POS, esta conexión será reemplazada
+    //$ por la conexión dinámica inyectada por el TenantInterceptor.
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => config.get('typeorm')!,
-      //$ Puedes comentar esta configuración temporalmente si solo quieres que la aplicación
+      //HACK Se puedee comentar esta configuración temporalmente si solo se quiere que la aplicación
       //$ intente conectarse a la DB del tenant de forma dinámica en lugar de una por defecto.
-      //$ Si la dejas, la conexión 'default' seguirá apuntando a 'nivo'.
+      //$ Si se deja, la conexión 'default' seguirá apuntando a 'nivo'.
     }),
     //! CONFIGURACIÓN BASE DE DATOS MAESTRA
     TypeOrmModule.forRoot(masterDbConfig),
@@ -73,5 +79,3 @@ import { TenantConnectionModule } from './common/tenant-connection/tenant-connec
   providers: [],
 })
 export class AppModule {}
-
-

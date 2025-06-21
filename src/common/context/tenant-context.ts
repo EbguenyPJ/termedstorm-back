@@ -7,7 +7,7 @@ import { DataSource } from 'typeorm';
  */
 interface TenantContextStore {
   customerId: string; //% id de la zapatería
-  dbConnectionString: string; //% cadena de conexión a su DB
+  tenantDataSource: DataSource; //% cadena de conexión a su DB
   //XXX En caso de que nacho los requiera se pueden añadir el nombre de la zapatería, nivel de suscripción etc
 }
 
@@ -15,8 +15,8 @@ interface TenantContextStore {
 export const tenantContext = new AsyncLocalStorage<TenantContextStore>();
 
 /*
- & Obtiene el contexto del tenant de la AsyncLocalStorage actual.
- & @returns El contexto del tenant si está disponible, de lo contrario, undefined.
+  & Obtiene el contexto del tenant de la AsyncLocalStorage actual.
+  & @returns El contexto del tenant si está disponible, de lo contrario, undefined.
  */
 export function getTenantContext(): TenantContextStore | undefined {
   return tenantContext.getStore();

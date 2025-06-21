@@ -1,10 +1,15 @@
 import { registerAs } from '@nestjs/config';
 import { config as dotenvConfig } from 'dotenv';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { join } from 'path';
 
 dotenvConfig({ path: '.env' });
 
-// --- Plantilla para la conexión de tenants ---
+//HACK --- Configuración para la Base de Datos del TENANT (Plantilla) ---
+//HACK Esta plantilla será usada por TenantConnectionService para crear conexiones dinámicas.
+//HACK NOTA: 'host', 'port', 'username', 'password', 'database' se sobreescribirán por 'url'
+//HACK en TenantConnectionService usando la `dbConnectionString` del cliente.
 export const tenantDbConfigTemplate: PostgresConnectionOptions = {
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
@@ -13,36 +18,46 @@ export const tenantDbConfigTemplate: PostgresConnectionOptions = {
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || '',
   // entities: ['dist/**/*.entity{.ts,.js}'],
-  entities: [__dirname + '/../**/*.entity.{ts,js}'],
+  // entities: [__dirname + '/../**/*.entity.{ts,js}'],
+  entities: [join(__dirname, '/../**/*.entity.{js,ts}')],
   migrations: ['dist/migrations/*{.ts,.js}'],
   // autoLoadEntities: true,
   dropSchema: false,
-  synchronize: true,
+  synchronize:
+    process.env.NODE_ENV !== 'production' &&
+    process.env.ENABLE_TENANT_SYNC === 'true',
 };
 
-// --- Configuración para la Base de Datos MAESTRA ---
+//HACK --- Configuración para la Base de Datos MAESTRA ---
 import { Customer } from '../master_data/customer/entities/customer.entity';
 import { CompanySubscription } from '../master_data/company_subscription/entities/company-subscription.entity';
 import { GlobalMembershipType } from '../master_data/global_membership_type/entities/global-membership-type.entity';
 
-export const masterDbConfig: PostgresConnectionOptions = {
+export const masterDbConfig: TypeOrmModuleOptions = {
   type: 'postgres',
   host: process.env.MASTER_DB_HOST || 'localhost',
   port: parseInt(process.env.MASTER_DB_PORT || '5432', 10),
   username: process.env.MASTER_DB_USERNAME || 'postgres',
   password: process.env.MASTER_DB_PASSWORD || '',
   database: process.env.MASTER_DB_DATABASE || '',
-  entities: [Customer, CompanySubscription, GlobalMembershipType],
+  entities: [Customer, CompanySubscription, GlobalMembershipType], //! Solo las entidades de la DB Maestra
   dropSchema: false,
-  synchronize: true,
+  synchronize: false,
   name: 'masterConnection',
 };
 
 // --- Exportación para Nest ConfigModule ---
-// export default registerAs('typeorm', () => tenantDbConfigTemplate);  //XXX Esta líea es sustituida
+// export default registerAs('typeorm', () => tenantDbConfigTemplate);  //XXX Esta líea es sustituida por:
 
-export const typeormConfig = tenantDbConfigTemplate;
+export const typeormConfig = tenantDbConfigTemplate; //XXX este par de líneas
 export default registerAs('typeorm', () => typeormConfig);
+
+
+
+
+
+
+
 
 // import { registerAs } from '@nestjs/config';
 // import { TypeOrmModuleOptions } from '@nestjs/typeorm';

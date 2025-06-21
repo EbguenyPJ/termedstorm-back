@@ -1,11 +1,11 @@
 import { Module, Global } from '@nestjs/common';
 import { TenantConnectionService } from './tenant-connection.service';
-import { CustomerModule } from '../../master_data/customer/customer.module'; //% Necesita el CustomerService
+import { CustomerModule } from '../../master_data/customer/customer.module'; //! Necesita CustomerService del módulo MasterData
 
-@Global() //% hace este módulo global para que el TenantConnectionService pueda ser inyectado en cualquier parte
+@Global() //! Hace que TenantConnectionService esté disponible globalmente sin necesidad de importar en cada módulo
 @Module({
-  imports: [CustomerModule], //% importa customermodule para acceder a customerservice
+  imports: [CustomerModule], //! Importa CustomerModule para poder inyectar CustomerService
   providers: [TenantConnectionService],
-  exports: [TenantConnectionService], //% exporta el servicio para que otros módulos lo usen
+  exports: [TenantConnectionService], //! Exporta el servicio para que pueda ser inyectado donde sea necesario
 })
 export class TenantConnectionModule {}
