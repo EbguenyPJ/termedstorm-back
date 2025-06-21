@@ -60,6 +60,8 @@ import { CancellationReasonModule } from './catalogues/cancellationReason/cancel
     MembershipTypesModule,
     MembershipsModule,
     CutModule,
+    VariantSizesModule,
+    ColorModule,
   ],
   controllers: [],
   providers: [],

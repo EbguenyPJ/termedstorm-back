@@ -22,6 +22,9 @@ export class MembershipType {
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
   updated_at: Date;
 
+  @DeleteDateColumn({ type: 'timestamp without time zone', nullable: true })
+  deleted_at: Date;
+
   @OneToMany(() => Membership, (membership) => membership.type)
   membership: Membership[];
 }

@@ -48,7 +48,7 @@ export class MembershipTypesService {
 
   async remove(id: string): Promise<{ message: string }> {
     const type = await this.findOne(id);
-    await this.membershipTypeRepository.remove(type);
+    await this.membershipTypeRepository.softDelete(id);
     return { message: `MembershipType con ID "${id}" eliminado.` };
   }
 }
