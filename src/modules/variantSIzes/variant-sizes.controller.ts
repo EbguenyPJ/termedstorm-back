@@ -19,8 +19,8 @@ export class VariantSizesController {
   constructor(private readonly variantSizesService: VariantSizesService) {}
 
   @Post()
-  create(@Body() createDto: CreateVariantSizeDto, variantProduct: ProductVariant, manager: EntityManager) {
-    return this.variantSizesService.create(createDto, variantProduct, manager);
+  create(@Body() createDto: CreateVariantSizeDto) {
+    return this.variantSizesService.create(createDto);
   }
 
   @Get()

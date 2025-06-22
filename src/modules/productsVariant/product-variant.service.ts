@@ -27,47 +27,55 @@ export class ProductVariantService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(VariantSize)
-    private readonly variantSizeService: VariantSizesService,
-    @InjectRepository(VariantSize)
     private readonly variantSizeRepository: Repository<VariantSize>,
+    private readonly variantSizeService: VariantSizesService,
   ) {}
 
 async create(
   createDto: CreateProductVariantDto,
-  productArg: Product,
-  manager: EntityManager,
+  productArg?: Product,
+  manager?: EntityManager,
 ): Promise<any> {
   const { variantSizes = [], color_id, product_id, ...rest } = createDto;
 
     const product = productArg
     ? productArg
     : product_id
-      ? await this.productRepository.findOneBy({ id: product_id })
-      : null;
+      ? manager
+      ? await manager.findOneBy(Product, { id: product_id })
+      : await this.productRepository.findOneBy({ id: product_id })
+    : null;
 
   if (!product) throw new NotFoundException(`Product with id ${product_id} not found`);
 
-  const color = await manager.findOneBy(Color, { id: color_id });
+   const color = manager
+    ? await manager.findOneBy(Color, { id: color_id })
+    : await this.colorRepository.findOneBy({ id: color_id });
   if (!color) throw new NotFoundException(`Color with id ${color_id} not found`);
 
-  const variant = manager.create(ProductVariant, {
-    ...rest,
-    product,
-    color,
-  });
+    const variant = manager
+    ? manager.create(ProductVariant, { ...rest, product, color })
+    : this.variantRepository.create({ ...rest, product, color });
 
-  const savedVariant = await manager.save(variant);
+  const savedVariant = manager
+    ? await manager.save(variant)
+    : await this.variantRepository.save(variant);
 
-  // if (variantSizes?.length > 0) {
-  //   for (const sizeDto of variantSizes) {
-  //     await this.variantSizeService.create(sizeDto, savedVariant, manager);
-  //   }
-  // }
+      if (variantSizes.length > 0) {
+    for (const sizeDto of variantSizes) {
+      await this.variantSizeService.create(sizeDto, savedVariant, manager);
+    }
+  }
 
-  const fullVariant = await manager.findOne(ProductVariant, {
-    where: { id: savedVariant.id },
-    relations: ['product', 'color', 'variantSizes', 'variantSizes.size'],
-  });
+  const fullVariant = manager
+    ? await manager.findOne(ProductVariant, {
+        where: { id: savedVariant.id },
+        relations: ['product', 'color', 'variantSizes', 'variantSizes.size'],
+      })
+    : await this.variantRepository.findOne({
+        where: { id: savedVariant.id },
+        relations: ['product', 'color', 'variantSizes', 'variantSizes.size'],
+      });
 
   return instanceToPlain(fullVariant);
 }

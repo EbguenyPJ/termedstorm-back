@@ -36,6 +36,7 @@ import { TenantConnectionModule } from './common/tenant-connection/tenant-connec
 //! TenantMiddleware; funciona junto con el AuthModule
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
+import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
 
 
 @Module({
@@ -80,7 +81,7 @@ import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
     MembershipsModule,
     CutModule,
     Size,
-    VariantSize,
+    VariantSizesModule,
     ColorModule,
     //! MasterDataModule (usa la conexión 'masterConnection')
     MasterDataModule,

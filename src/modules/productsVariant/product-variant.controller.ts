@@ -10,8 +10,8 @@ export class ProductVariantController {
   constructor(private readonly productVariantService: ProductVariantService) {}
 
   @Post()
-  create(@Body() createDto: CreateProductVariantDto, product: Product, manager: EntityManager) {
-    return this.productVariantService.create(createDto, product, manager);
+  create(@Body() createDto: CreateProductVariantDto) {
+    return this.productVariantService.create(createDto);
   }
 
   @Get()
