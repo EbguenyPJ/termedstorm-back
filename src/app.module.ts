@@ -18,7 +18,6 @@ import { BrandModule } from './catalogues/brand/brand.module';
 import { ProductModule } from './modules/products/product.module';
 import { ProductVariantModule } from './modules/productsVariant/product-variant.module';
 import { AuditModule } from './audits/audit.module';
-import { SizeModule } from './catalogues/sizeProduct/size-product.module';
 import { MembershipStatusModule } from './catalogues/MembershipStatus/membership-status.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
@@ -26,6 +25,10 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { MembershipTypesModule } from './modules/subscriptions/membershipTypes/membership-types.module';
 import { MembershipsModule } from './modules/subscriptions/membership/memberships.module';
 import { CutModule } from './cuts/cut.module';
+import { SizeModule } from './catalogues/sizeProduct/size-product.module';
+import { Size } from './catalogues/sizeProduct/entities/size-product.entity';
+import { VariantSize } from './modules/variantSIzes/entities/variantSizes.entity';
+import { Color } from './catalogues/colorProduct/entities/colorProduct.entity';
 //! Master module
 import { MasterDataModule } from './master_data/master_data.module';
 //! TenantConnectionModule
@@ -33,8 +36,6 @@ import { TenantConnectionModule } from './common/tenant-connection/tenant-connec
 //! TenantMiddleware; funciona junto con el AuthModule
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 
-import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
-import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
 
 @Module({
   imports: [
@@ -77,11 +78,11 @@ import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
     MembershipTypesModule,
     MembershipsModule,
     CutModule,
+    Size,
+    VariantSize,
+    Color,
     //! MasterDataModule (usa la conexión 'masterConnection')
-    VariantSizesModule,
-    ColorModule,
     MasterDataModule,
-    
   ],
   controllers: [],
   providers: [],

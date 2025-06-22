@@ -47,6 +47,9 @@ import { Todo } from '../../modules/todos/entities/todo.entity';
 import { MembershipType } from 'src/modules/subscriptions/membershipTypes/entities/membershipType.entity';  //[x] Imported
 import { CompanyMembership } from 'src/modules/subscriptions/membershipTypes/entities/companyMembership.entity';  //[x] Imported
 import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
+import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
+import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
+
 
 
 
@@ -132,6 +135,8 @@ export class TenantConnectionService implements OnModuleDestroy {
         Size,
         MembershipType,
         CompanyMembership,
+        VariantSize,
+        Color,
         //? Entidades Flor
 
         //? Entidades Steven
