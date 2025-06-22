@@ -5,7 +5,8 @@ import { SizeService } from './size-product.service';
 import { SizeController } from './size-product.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Size])],
+  // imports: [TypeOrmModule.forFeature([Size])],
+  imports: [],
   controllers: [SizeController],
   providers: [SizeService],
 })

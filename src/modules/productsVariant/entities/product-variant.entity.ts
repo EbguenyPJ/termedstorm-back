@@ -22,7 +22,7 @@ export class ProductVariant {
   @Column('text')
   description: string;
 
-  @Column('text')
+  @Column("text", { array: true })
   image: string[];
 
   @Column('uuid')

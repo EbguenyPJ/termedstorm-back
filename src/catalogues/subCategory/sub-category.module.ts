@@ -7,7 +7,8 @@ import { Brand } from '../brand/entities/brand.entity';
 import { Category } from '../category/entities/category.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SubCategory, Category, Brand])],
+  // imports: [TypeOrmModule.forFeature([SubCategory, Category, Brand])],
+  imports: [],
   providers: [SubCategoryService],
   controllers: [SubCategoryController],
 })

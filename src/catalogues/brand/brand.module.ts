@@ -6,7 +6,8 @@ import { BrandController } from './brand.controller';
 import { SubCategory } from '../subCategory/entities/sub-category.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Brand, SubCategory])],
+  // imports: [TypeOrmModule.forFeature([Brand, SubCategory])],
+  imports: [],
   providers: [BrandService],
   controllers: [BrandController],
 })
