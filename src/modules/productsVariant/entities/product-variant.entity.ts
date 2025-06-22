@@ -23,7 +23,7 @@ export class ProductVariant {
   description: string;
 
   @Column('text')
-  image: string;
+  image: string[];
 
   @Column('uuid')
   color_id: string;

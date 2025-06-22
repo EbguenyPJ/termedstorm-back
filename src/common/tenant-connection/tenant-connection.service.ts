@@ -44,9 +44,9 @@ import { TypeOfPayment } from '../../modules/type-of-payment/type-of-payment.ent
 import { Audit } from '../../audits/audit.entity';
 import { Cut } from '../../cuts/cut.entity';
 import { Todo } from '../../modules/todos/entities/todo.entity';  
-import { Size } from 'src/modules/sizeProduct/entities/size-product.entity'; //[x] Imported
 import { MembershipType } from 'src/modules/subscriptions/membershipTypes/entities/membershipType.entity';  //[x] Imported
 import { CompanyMembership } from 'src/modules/subscriptions/membershipTypes/entities/companyMembership.entity';  //[x] Imported
+import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
 
 
 

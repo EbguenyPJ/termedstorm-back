@@ -78,9 +78,9 @@ import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
     MembershipsModule,
     CutModule,
     //! MasterDataModule (usa la conexión 'masterConnection')
-    MasterDataModule,
     VariantSizesModule,
-    ColorModule
+    ColorModule,
+    MasterDataModule,
     
   ],
   controllers: [],
