@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 // import typeorm from './config/typeorm';
 //! Inicializar la conexión maestra
@@ -30,6 +30,9 @@ import { CutModule } from './cuts/cut.module';
 import { MasterDataModule } from './master_data/master_data.module';
 //! TenantConnectionModule
 import { TenantConnectionModule } from './common/tenant-connection/tenant-connection.module';
+//! TenantMiddleware; funciona junto con el AuthModule
+import { TenantMiddleware } from './common/middleware/tenant.middleware';
+
 
 @Module({
   imports: [
@@ -53,8 +56,8 @@ import { TenantConnectionModule } from './common/tenant-connection/tenant-connec
     TypeOrmModule.forRoot(masterDbConfig),
     //! Importa el TenantConnectionModule
     TenantConnectionModule,
+    AuthModule, //BUG AutjModulke tiene que estar listado antes que  el TenantMiddleware en configure() en caso de usar JWT para identificar el tenant
     TodosModule,
-    AuthModule,
     RolesModule,
     EmployeesModule,
     UsersModule,
@@ -78,4 +81,12 @@ import { TenantConnectionModule } from './common/tenant-connection/tenant-connec
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+  
+export class AppModule {
+  //[x] Configurar el middleware para que se ejecute en todas las rutas
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL }); //! Aplica a todas las rutas
+  }
+}

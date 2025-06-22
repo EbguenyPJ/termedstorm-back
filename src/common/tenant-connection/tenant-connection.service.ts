@@ -22,14 +22,16 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 //? Entidades Flor
 
 //? Entidades Steven
+import { Brand } from '../../catalogues/brand/entities/brand.entity';
 
 //? Entidades Pia
 
+//? Entidades Ebgueny
 import { User } from '../../modules/users/entities/user.entity';
 import { Employee } from '../../modules/users/entities/employee.entity';
 import { Client } from '../../modules/users/entities/client.entity';
 import { Role } from '../../modules/roles/entities/role.entity';
-import { Brand } from '../../catalogues/brand/entities/brand.entity';
+
 import { Category } from '../../catalogues/category/entities/category.entity';
 import { SubCategory } from '../../catalogues/subCategory/entities/sub-category.entity';
 import { Product } from '../../modules/products/entities/product.entity';
@@ -135,6 +137,8 @@ export class TenantConnectionService implements OnModuleDestroy {
         //? Entidades Steven
 
         //? Entidades Pia
+
+        //? Entidades Ebgueny
       ],
       synchronize:
         process.env.NODE_ENV !== 'production' &&
