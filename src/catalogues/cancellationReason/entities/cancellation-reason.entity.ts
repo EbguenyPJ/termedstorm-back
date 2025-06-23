@@ -1,4 +1,4 @@
-import { Cancellation } from 'src/modules/cancellation/entities/cancellation.entity';
+import { Cancellation } from '../../../modules/cancellation/entities/cancellation.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('tc_cancel_reason')

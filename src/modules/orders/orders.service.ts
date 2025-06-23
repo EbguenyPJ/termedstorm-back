@@ -10,7 +10,7 @@ import { StripeService } from '../stripe/stripe.service';
 import { Order } from './entities/order.entity';
 import { OrderDetail } from './entities/orderDetail.entity';
 import Stripe from 'stripe';
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductService } from '../products/product.service';
 import { Client } from '../users/entities/client.entity';
@@ -19,12 +19,13 @@ import { ProductVariant } from '../productsVariant/entities/product-variant.enti
 import { CancellationService } from '../cancellation/cancellation.service';
 import { CreateCancellationDto } from '../cancellation/dto/create-cancellation.dto';
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
+import { InjectTenantRepository } from '../../common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
   constructor(
-    @InjectRepository(Order)
+    @InjectTenantRepository(Order)
     private readonly orderRepository: Repository<Order>,
     private readonly dataSource: DataSource,
     private readonly stripeService: StripeService,

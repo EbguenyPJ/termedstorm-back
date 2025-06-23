@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Membership } from './entities/membership.entity';
+import { InjectTenantRepository } from '../../../common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class MembershipsService {
   constructor(
-    @InjectRepository(Membership)
+    @InjectTenantRepository(Membership)
     private readonly membershipRepository: Repository<Membership>,
   ) {}
 

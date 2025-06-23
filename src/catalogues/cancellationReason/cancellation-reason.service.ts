@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
 import { CancellationReason } from './entities/cancellation-reason.entity';
 import { CreateCancellationReasonDto } from './dto/create-cancellation-reason.dto';
 import { UpdateCancellationReasonDto } from './dto/update-cancellation-reason.dto';
+import { InjectTenantRepository } from '../../common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class CancellationReasonService {
   constructor(
-    @InjectRepository(CancellationReason)
+    @InjectTenantRepository(CancellationReason)
     private readonly CancellationReasonRepository: Repository<CancellationReason>,
   ) {}
 
