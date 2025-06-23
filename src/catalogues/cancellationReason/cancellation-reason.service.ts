@@ -18,20 +18,20 @@ export class CancellationReasonService {
   ): Promise<CancellationReason> {
     const cancel = this.CancellationReasonRepository.create({
       ...createDto,
-      isActive: createDto.isActive ?? true,
+      is_active: createDto.is_active ?? true,
     });
     return this.CancellationReasonRepository.save(cancel);
   }
 
   async findAll(): Promise<CancellationReason[]> {
     return this.CancellationReasonRepository.find({
-      where: { isActive: true },
+      where: { is_active: true },
     });
   }
 
   async findOne(id: string): Promise<CancellationReason> {
     const CancellationReason = await this.CancellationReasonRepository.findOne({
-      where: { id, isActive: true },
+      where: { id, is_active: true },
     });
     if (!CancellationReason)
       throw new NotFoundException(`Cancel reason with id ${id} not found`);
@@ -43,7 +43,7 @@ export class CancellationReasonService {
     updateDto: UpdateCancellationReasonDto,
   ): Promise<{ message: string }> {
     const exists = await this.CancellationReasonRepository.findOne({
-      where: { id, isActive: true },
+      where: { id, is_active: true },
     });
     if (!exists)
       throw new NotFoundException(`Cancel reason with id ${id} not found`);
@@ -53,11 +53,11 @@ export class CancellationReasonService {
 
   async delete(id: string): Promise<{ message: string }> {
     const exists = await this.CancellationReasonRepository.findOne({
-      where: { id, isActive: true },
+      where: { id, is_active: true },
     });
     if (!exists)
       throw new NotFoundException(`Cancel reason with id ${id} not found`);
-    await this.CancellationReasonRepository.update(id, { isActive: false });
+    await this.CancellationReasonRepository.update(id, { is_active: false });
     return { message: `Cancel reason with id ${id} deactivated successfully` };
   }
 }

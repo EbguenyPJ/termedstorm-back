@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Cancellation } from 'src/modules/cancellation/entities/cancellation.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('tc_cancel_reason')
 export class CancellationReason {
@@ -9,5 +10,11 @@ export class CancellationReason {
   reason: string;
 
   @Column({ default: true })
-  isActive: boolean;
+  is_active: boolean;
+
+  @OneToMany(
+    () => Cancellation,
+    (cancellation) => cancellation.cancellationReason,
+  )
+  cancellation: Cancellation[];
 }

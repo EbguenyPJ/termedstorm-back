@@ -7,5 +7,5 @@ export class UpdateCancellationReasonDto {
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  is_active?: boolean;
 }

@@ -1,3 +1,4 @@
+import { CancellationReason } from 'src/catalogues/cancellationReason/entities/cancellation-reason.entity';
 import { Order } from 'src/modules/orders/entities/order.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
 import {
@@ -34,7 +35,7 @@ export class Cancellation {
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 
-  // @ManyToOne(() => CancellationReason, reason => reason.cancellations)
-  // @JoinColumn({ name: 'cancellation_reason_id' })
-  // cancellationReason: CancellationReason;
+  @ManyToOne(() => CancellationReason, (reason) => reason.cancellation)
+  @JoinColumn({ name: 'cancellation_reason_id' })
+  cancellationReason: CancellationReason;
 }

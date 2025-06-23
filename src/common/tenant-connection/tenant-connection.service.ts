@@ -43,12 +43,17 @@ import { Membership } from '../../modules/subscriptions/membership/entities/memb
 import { TypeOfPayment } from '../../modules/type-of-payment/type-of-payment.entity';
 import { Audit } from '../../audits/audit.entity';
 import { Cut } from '../../cuts/cut.entity';
-import { Todo } from '../../modules/todos/entities/todo.entity';  
-import { Size } from 'src/modules/sizeProduct/entities/size-product.entity'; //[x] Imported
-import { MembershipType } from 'src/modules/subscriptions/membershipTypes/entities/membershipType.entity';  //[x] Imported
-import { CompanyMembership } from 'src/modules/subscriptions/membershipTypes/entities/companyMembership.entity';  //[x] Imported
-
-
+import { Todo } from '../../modules/todos/entities/todo.entity';
+import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity'; //[x] Imported
+import { MembershipType } from 'src/modules/subscriptions/membershipTypes/entities/membershipType.entity'; //[x] Imported  //[x] Imported
+import { SizeModule } from 'src/catalogues/sizeProduct/size-product.module';
+import { Cancellation } from 'src/modules/cancellation/entities/cancellation.entity';
+import { CancellationReason } from 'src/catalogues/cancellationReason/entities/cancellation-reason.entity';
+import { CompanySubscription } from 'src/master_data/company_subscription/entities/company-subscription.entity';
+import { GlobalMembershipType } from 'src/master_data/global_membership_type/entities/global-membership-type.entity';
+import { Customer } from 'src/master_data/customer/entities/customer.entity';
+import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
+import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
@@ -112,33 +117,39 @@ export class TenantConnectionService implements OnModuleDestroy {
       name: customerId,
       //TODO ... Asegúrate de que todas tus entidades tambien estén listadas aquí
       entities: [
-        User,
-        Employee,
-        Client,
-        Role,
+        //? Entidades Flor
+        Order,
+        OrderDetail,
+        MembershipType,
+        Membership,
+        Cancellation,
+        CompanySubscription,
+        GlobalMembershipType,
+
+        //? Entidades Steven
         Brand,
         Category,
         SubCategory,
         Product,
         ProductVariant,
-        Order,
-        OrderDetail,
         MembershipStatus,
-        Membership,
-        TypeOfPayment,
-        Audit,
-        Cut,
-        Todo,
         Size,
-        MembershipType,
-        CompanyMembership,
-        //? Entidades Flor
-
-        //? Entidades Steven
+        TypeOfPayment,
+        CancellationReason,
+        VariantSize,
+        Color,
 
         //? Entidades Pia
+        Audit,
+        Cut,
 
         //? Entidades Ebgueny
+        User,
+        Employee,
+        Client,
+        Role,
+        Todo,
+        Customer,
       ],
       synchronize:
         process.env.NODE_ENV !== 'production' &&
@@ -205,7 +216,9 @@ export class TenantConnectionService implements OnModuleDestroy {
         await dataSource.destroy();
         this.logger.log(`DataSource for customer ${customerId} destroyed.`);
       } else {
-        this.logger.warn(`DataSource for customer ${customerId} was not initialized, skipping destroy.`);
+        this.logger.warn(
+          `DataSource for customer ${customerId} was not initialized, skipping destroy.`,
+        );
       }
     }
     this.dataSources.clear();

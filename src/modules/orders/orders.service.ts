@@ -350,7 +350,7 @@ export class OrdersService {
         {
           order,
           employeeId: employeeId,
-          reasonId: dto.cancellationReasonId,
+          reasonId: dto.cancellation_reason_id,
           comment: dto.comment,
         },
         entityManager,

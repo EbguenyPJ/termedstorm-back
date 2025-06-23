@@ -17,7 +17,7 @@ export class MembershipStatusService {
   ): Promise<MembershipStatus> {
     const userMemStatus = this.membershipStatusRepo.create({
       ...createDto,
-      is_active: createDto.isActive ?? true,
+      is_active: createDto.is_active ?? true,
     });
     return this.membershipStatusRepo.save(userMemStatus);
   }

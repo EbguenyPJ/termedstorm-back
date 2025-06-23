@@ -3,7 +3,7 @@ import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 export class CreateCancellationDto {
   @IsString()
   @IsNotEmpty()
-  cancellationReasonId: string;
+  cancellation_reason_id: string;
 
   @IsString()
   @IsOptional()

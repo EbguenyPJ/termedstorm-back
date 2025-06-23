@@ -18,5 +18,5 @@ export class CreateCancellationReasonDto {
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  is_active?: boolean;
 }

@@ -29,6 +29,7 @@ import { CutModule } from './cuts/cut.module';
 import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
 import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
 import { CancellationModule } from './modules/cancellation/cancellation.module';
+
 //! Master module
 import { MasterDataModule } from './master_data/master_data.module';
 import { CancellationReasonModule } from './catalogues/cancellationReason/cancellation-reason.module';
@@ -36,6 +37,9 @@ import { CancellationReasonModule } from './catalogues/cancellationReason/cancel
 import { TenantConnectionModule } from './common/tenant-connection/tenant-connection.module';
 //! TenantMiddleware; funciona junto con el AuthModule
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
+import { GlobalMembershipTypeModule } from './master_data/global_membership_type/global-membership-type.module';
+import { CustomerModule } from './master_data/customer/customer.module';
+import { CompanySubscriptionModule } from './master_data/company_subscription/company-subscription.module';
 
 @Module({
   imports: [
@@ -80,6 +84,11 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
     CutModule,
     VariantSizesModule,
     ColorModule,
+    SizeModule,
+    CancellationModule,
+    GlobalMembershipTypeModule,
+    CustomerModule,
+    CompanySubscriptionModule,
   ],
   controllers: [],
   providers: [],
