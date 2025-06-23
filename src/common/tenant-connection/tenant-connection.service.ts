@@ -53,6 +53,7 @@ import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity'
 
 
 
+
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
   private readonly logger = new Logger(TenantConnectionService.name);
