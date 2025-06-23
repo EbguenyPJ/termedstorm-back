@@ -27,6 +27,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { MembershipTypesModule } from './modules/subscriptions/membershipTypes/membership-types.module';
 import { MembershipsModule } from './modules/subscriptions/membership/memberships.module';
 import { CutModule } from './cuts/cut.module';
+import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { CancellationModule } from './modules/cancellation/cancellation.module';
 
 //! Master module
@@ -91,6 +92,7 @@ import { User } from './modules/users/entities/user.entity';
     MembershipTypesModule,
     MembershipsModule,
     CutModule,
+    ShipmentsModule,
     User,
     CancellationReasonModule,
     CancellationModule,
