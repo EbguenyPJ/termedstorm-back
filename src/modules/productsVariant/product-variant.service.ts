@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, In, Repository } from 'typeorm';
 import { ProductVariant } from './entities/product-variant.entity';
 import { CreateProductVariantDto } from './dto/create-product-variant.dto';
@@ -14,19 +13,20 @@ import { instanceToPlain } from 'class-transformer';
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
 import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
 import { VariantSizesService } from '../variantSIzes/variant-sizes.service';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class ProductVariantService {
   constructor(
-    @InjectRepository(ProductVariant)
+    @InjectTenantRepository(ProductVariant)
     private readonly variantRepository: Repository<ProductVariant>,
-    @InjectRepository(Color)
+    @InjectTenantRepository(Color)
     private readonly colorRepository: Repository<Color>,
-    @InjectRepository(Size)
+    @InjectTenantRepository(Size)
     private readonly sizeRepository: Repository<Size>,
-    @InjectRepository(Product)
+    @InjectTenantRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @InjectRepository(VariantSize)
+    @InjectTenantRepository(VariantSize)
     private readonly variantSizeRepository: Repository<VariantSize>,
     private readonly variantSizeService: VariantSizesService,
   ) {}

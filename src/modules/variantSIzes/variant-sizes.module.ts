@@ -5,9 +5,10 @@ import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
 import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
 import { VariantSizesService } from './variant-sizes.service';
 import { VariantSizesController } from './variant-sizes.controller';
+import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant-repository.provider';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([VariantSize, Size, ProductVariant])],
+  imports: [TenantTypeOrmModule.forFeature([VariantSize, Size, ProductVariant])],
   providers: [VariantSizesService],
   controllers: [VariantSizesController],
 })

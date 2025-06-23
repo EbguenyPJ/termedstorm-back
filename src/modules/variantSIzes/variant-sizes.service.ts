@@ -11,15 +11,16 @@ import { UpdateVariantSizeDto } from './dto/update-variant-sizes.dto';
 import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
 import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
 import { instanceToPlain } from 'class-transformer';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class VariantSizesService {
   constructor(
-    @InjectRepository(VariantSize)
+    @InjectTenantRepository(VariantSize)
     private readonly variantSizeRepository: Repository<VariantSize>,
-    @InjectRepository(Size)
+    @InjectTenantRepository(Size)
     private readonly sizeRepository: Repository<Size>,
-    @InjectRepository(ProductVariant)
+    @InjectTenantRepository(ProductVariant)
     private readonly productVariantRepository: Repository<ProductVariant>,
   ) {}
 

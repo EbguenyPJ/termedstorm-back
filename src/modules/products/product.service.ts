@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, IsNull, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -19,15 +18,16 @@ import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.en
 import { Brand } from 'src/catalogues/brand/entities/brand.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
 import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class ProductService {
   constructor(
-    @InjectRepository(Product)
+    @InjectTenantRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @InjectRepository(ProductVariant)
+    @InjectTenantRepository(ProductVariant)
     private readonly productVariantRepository: Repository<ProductVariant>,
-    @InjectRepository(Color)
+    @InjectTenantRepository(Color)
     private readonly colorRepository: Repository<Color>,
     private readonly variantService: ProductVariantService,
     private readonly dataSource: DataSource,

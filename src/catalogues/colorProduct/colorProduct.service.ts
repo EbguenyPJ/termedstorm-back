@@ -10,25 +10,17 @@ import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
 import { instanceToPlain } from 'class-transformer';
 import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class ColorService {
   constructor(
-    // @InjectRepository(Color)
-    // private readonly colorRepository: Repository<Color>,
-    private readonly tenantConnectionService: TenantConnectionService,
+    @InjectTenantRepository(Color)
+    private readonly colorRepository: Repository<Color>,
   ) {}
 
-  private getColorRepository(): Repository<Color> {
-    const dataSource =
-      this.tenantConnectionService.getTenantDataSourceFromContext();
-    return dataSource.getRepository(Color);
-  }
-
   async create(createDto: CreateColorDto) {
-    const colorRepository = this.getColorRepository();
-
-    const exists = await colorRepository.findOneBy({
+    const exists = await this.colorRepository.findOneBy({
       color: createDto.color.trim(),
     });
     if (exists) {
@@ -37,43 +29,35 @@ export class ColorService {
       );
     }
 
-    const color = colorRepository.create(createDto);
-    const saved = await colorRepository.save(color);
+    const color = this.colorRepository.create(createDto);
+    const saved = await this.colorRepository.save(color);
     return instanceToPlain(saved);
   }
 
   async findAll() {
-    const colorRepository = this.getColorRepository();
-
-    const data = await colorRepository.find();
+    const data = await this.colorRepository.find();
     return instanceToPlain(data);
   }
 
   async findOne(id: string) {
-    const colorRepository = this.getColorRepository();
-
-    const color = await colorRepository.findOne({ where: { id } });
+    const color = await this.colorRepository.findOne({ where: { id } });
     if (!color) throw new NotFoundException(`Color with id ${id} not found`);
     return instanceToPlain(color);
   }
 
   async update(id: string, updateDto: UpdateColorDto) {
-    const colorRepository = this.getColorRepository();
-
-    const color = await colorRepository.findOneBy({ id });
+    const color = await this.colorRepository.findOneBy({ id });
     if (!color) throw new NotFoundException(`Color with id ${id} not found`);
 
-    const updated = colorRepository.merge(color, updateDto);
-    const saved = await colorRepository.save(updated);
+    const updated = this.colorRepository.merge(color, updateDto);
+    const saved = await this.colorRepository.save(updated);
     return instanceToPlain(saved);
   }
 
   async remove(id: string) {
-    const colorRepository = this.getColorRepository();
-
-    const color = await colorRepository.findOneBy({ id });
+    const color = await this.colorRepository.findOneBy({ id });
     if (!color) throw new NotFoundException(`Color with id ${id} not found`);
-    await colorRepository.update(id, { deleted_at: new Date() });
+    await this.colorRepository.update(id, { deleted_at: new Date() });
     return { message: `Color with id ${id} deleted successfully` };
   }
 }

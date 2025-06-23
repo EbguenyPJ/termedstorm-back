@@ -7,42 +7,27 @@ import { In, Repository, DataSource } from 'typeorm';
 import { SubCategory } from './entities/sub-category.entity';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from '../category/entities/category.entity';
 import { Brand } from '../brand/entities/brand.entity';
 import { instanceToPlain } from 'class-transformer';
 import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class SubCategoryService {
   constructor(
-    // @InjectRepository(SubCategory)
-    // private readonly subCategoryRepository: Repository<SubCategory>,
+    @InjectTenantRepository(SubCategory)
+    private readonly subCategoryRepository: Repository<SubCategory>,
 
-    // @InjectRepository(Category)
-    // private readonly categoryRepository: Repository<Category>,
+    @InjectTenantRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
 
-    // @InjectRepository(Brand)
-    // private readonly brandRepository: Repository<Brand>,
-    private readonly tenantConnectionService: TenantConnectionService,
+    @InjectTenantRepository(Brand)
+    private readonly brandRepository: Repository<Brand>,
   ) {}
 
-  private getSubCategoryRepository(): Repository<SubCategory> {
-    const dataSource =
-      this.tenantConnectionService.getTenantDataSourceFromContext();
-    return dataSource.getRepository(SubCategory);
-  }
-  private getCategoryRepository(): Repository<Category> {
-    const dataSource =
-      this.tenantConnectionService.getTenantDataSourceFromContext();
-    return dataSource.getRepository(Category);
-  }
-
   async create(createDto: CreateSubCategoryDto): Promise<any> {
-    const subCategoryRepository = this.getSubCategoryRepository();
-    const categoryRepository = this.getCategoryRepository();
-
-    const existing = await subCategoryRepository.findOne({
+    const existing = await this.subCategoryRepository.findOne({
       where: [{ name: createDto.name }, { key: createDto.key }],
     });
 
@@ -66,7 +51,7 @@ export class SubCategoryService {
       );
     }
 
-    const existingCategories = await categoryRepository.find({
+    const existingCategories = await this.categoryRepository.find({
       where: { id: In(categories) },
     });
 
@@ -79,18 +64,16 @@ export class SubCategoryService {
       );
     }
 
-    const subCategory = subCategoryRepository.create({
+    const subCategory = this.subCategoryRepository.create({
       ...createDto,
       categories: existingCategories,
     });
-    const saved = await subCategoryRepository.save(subCategory);
+    const saved = await this.subCategoryRepository.save(subCategory);
     return instanceToPlain(saved);
   }
 
   async findAll(): Promise<any> {
-    const subCategoryRepository = this.getSubCategoryRepository();
-
-    const subCategories = await subCategoryRepository.find({
+    const subCategories = await this.subCategoryRepository.find({
       relations: {
         categories: true,
         brands: true,
@@ -100,9 +83,7 @@ export class SubCategoryService {
   }
 
   async findOne(id: string): Promise<any> {
-    const subCategoryRepository = this.getSubCategoryRepository();
-
-    const subCategory = await subCategoryRepository.findOne({
+    const subCategory = await this.subCategoryRepository.findOne({
       where: { id },
       relations: {
         categories: true,
@@ -121,22 +102,18 @@ export class SubCategoryService {
     id: string,
     updateDto: UpdateSubCategoryDto,
   ): Promise<{ message: string }> {
-    const subCategoryRepository = this.getSubCategoryRepository();
-
-    const exists = await subCategoryRepository.findOneBy({ id });
+    const exists = await this.subCategoryRepository.findOneBy({ id });
     if (!exists)
       throw new NotFoundException(`SubCategory with id ${id} not found`);
-    await subCategoryRepository.update(id, updateDto);
+    await this.subCategoryRepository.update(id, updateDto);
     return { message: `SubCategory with id ${id} updated successfully` };
   }
 
   async delete(id: string): Promise<{ message: string }> {
-    const subCategoryRepository = this.getSubCategoryRepository();
-
-    const exists = await subCategoryRepository.findOne({ where: { id } });
+    const exists = await this.subCategoryRepository.findOne({ where: { id } });
     if (!exists)
       throw new NotFoundException(`SubCategory with id ${id} not found`);
-    await subCategoryRepository.softDelete(id);
+    await this.subCategoryRepository.softDelete(id);
     return { message: `SubCategory with id ${id} deleted successfully` };
   }
 }

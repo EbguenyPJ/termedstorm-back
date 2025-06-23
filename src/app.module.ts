@@ -29,8 +29,8 @@ import { MembershipsModule } from './modules/subscriptions/membership/membership
 import { CutModule } from './cuts/cut.module';
 import { SizeModule } from './catalogues/sizeProduct/size-product.module';
 import { Size } from './catalogues/sizeProduct/entities/size-product.entity';
-import { VariantSize } from './modules/variantSIzes/entities/variantSizes.entity';
-import { Color } from './catalogues/colorProduct/entities/colorProduct.entity';
+import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
+import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
 //! Master module
 import { MasterDataModule } from './master_data/master_data.module';
 //! TenantConnectionModule
@@ -38,8 +38,6 @@ import { TenantConnectionModule } from './common/tenant-connection/tenant-connec
 //! TenantMiddleware; funciona junto con el AuthModule
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { User } from './modules/users/entities/user.entity';
-import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
-import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
 
 
 @Module({
