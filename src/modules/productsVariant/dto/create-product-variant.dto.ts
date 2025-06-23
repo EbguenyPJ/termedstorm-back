@@ -11,8 +11,9 @@ export class CreateProductVariantDto {
 
   @ApiProperty({ example: 'https://miapp.com/images/zapatillas-nike-running.jpg' })
   @IsOptional()
-  @IsString()
-  image?: string;
+  @IsArray()
+  @IsString({ each: true })
+  image?: string[];
 
   @ApiProperty({ example: 'c735b720-84a0-4625-a94e-7f994f1e0a11'  })
   @IsString()

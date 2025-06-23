@@ -25,8 +25,8 @@ export class ProductController {
   }
 
   @Get('search')
-  async searchProducts(@Query('query') query: string) {
-    return this.productService.searchProducts(query);
+  async searchProducts(@Query('query') query: string, @Query('color') color: string) {
+    return this.productService.searchProducts(query, color);
   }
 
   @Get()

@@ -42,9 +42,12 @@ export const masterDbConfig: TypeOrmModuleOptions = {
   database: process.env.MASTER_DB_DATABASE || '',
   entities: [Customer, CompanySubscription, GlobalMembershipType], //! Solo las entidades de la DB Maestra
   dropSchema: false,
-  synchronize: false,
+  synchronize: true,
   name: 'masterConnection',
 };
+
+// --- Exportación para Nest ConfigModule ---
+// export default registerAs('typeorm', () => tenantDbConfigTemplate);  //XXX Esta líea es sustituida por:
 
 // --- Exportación para Nest ConfigModule ---
 // export default registerAs('typeorm', () => tenantDbConfigTemplate);  //XXX Esta líea es sustituida por:

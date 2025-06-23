@@ -3,25 +3,26 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { In, Repository, DataSource } from 'typeorm';
 import { SubCategory } from './entities/sub-category.entity';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from '../category/entities/category.entity';
 import { Brand } from '../brand/entities/brand.entity';
 import { instanceToPlain } from 'class-transformer';
+import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class SubCategoryService {
   constructor(
-    @InjectRepository(SubCategory)
+    @InjectTenantRepository(SubCategory)
     private readonly subCategoryRepository: Repository<SubCategory>,
 
-    @InjectRepository(Category)
+    @InjectTenantRepository(Category)
     private readonly categoryRepository: Repository<Category>,
 
-    @InjectRepository(Brand)
+    @InjectTenantRepository(Brand)
     private readonly brandRepository: Repository<Brand>,
   ) {}
 
@@ -43,7 +44,7 @@ export class SubCategoryService {
     const duplicateCategoryIds = categories.filter(
       (id, i, arr) => arr.indexOf(id) !== i,
     );
-    
+
     if (duplicateCategoryIds.length) {
       throw new BadRequestException(
         `IDs duplicated: ${duplicateCategoryIds.length ? 'categories' : ''}`,

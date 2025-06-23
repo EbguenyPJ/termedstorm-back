@@ -1,15 +1,21 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { instanceToPlain } from 'class-transformer';
+import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class CategoryService {
   constructor(
-    @InjectRepository(Category)
+    @InjectTenantRepository(Category)
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
@@ -30,7 +36,7 @@ export class CategoryService {
     const category = this.categoryRepository.create({
       ...createDto,
     });
-const saved = await this.categoryRepository.save(category)
+    const saved = await this.categoryRepository.save(category);
     return instanceToPlain(saved);
   }
 
@@ -40,31 +46,31 @@ const saved = await this.categoryRepository.save(category)
         subcategories: true,
       },
     });
-  return instanceToPlain(categories);
-}
+    return instanceToPlain(categories);
+  }
 
-async findOne(id: string): Promise<any> {
-  const category = await this.categoryRepository.findOne({
+  async findOne(id: string): Promise<any> {
+    const category = await this.categoryRepository.findOne({
       where: { id },
       relations: {
         subcategories: true,
       },
     });
 
-  if (!category) {
-    throw new NotFoundException(`Category with id ${id} not found`);
-  }
+    if (!category) {
+      throw new NotFoundException(`Category with id ${id} not found`);
+    }
 
-  return instanceToPlain(category);
-}
+    return instanceToPlain(category);
+  }
 
   async update(
     id: string,
     updateDto: UpdateCategoryDto,
   ): Promise<{ message: string }> {
     const exists = await this.categoryRepository.findOne({
-    where: { id },
-  });
+      where: { id },
+    });
     if (!exists)
       throw new NotFoundException(`Category with id ${id} not found`);
     await this.categoryRepository.update(id, updateDto);
@@ -73,8 +79,8 @@ async findOne(id: string): Promise<any> {
 
   async delete(id: string): Promise<{ message: string }> {
     const exists = await this.categoryRepository.findOne({
-    where: { id },
-  });
+      where: { id },
+    });
     if (!exists)
       throw new NotFoundException(`Category with id ${id} not found`);
     await this.categoryRepository.softDelete(id);

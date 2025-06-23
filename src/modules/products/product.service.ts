@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, IsNull, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -19,15 +18,16 @@ import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.en
 import { Brand } from 'src/catalogues/brand/entities/brand.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
 import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class ProductService {
   constructor(
-    @InjectRepository(Product)
+    @InjectTenantRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @InjectRepository(ProductVariant)
+    @InjectTenantRepository(ProductVariant)
     private readonly productVariantRepository: Repository<ProductVariant>,
-    @InjectRepository(Color)
+    @InjectTenantRepository(Color)
     private readonly colorRepository: Repository<Color>,
     private readonly variantService: ProductVariantService,
     private readonly dataSource: DataSource,
@@ -191,7 +191,7 @@ export class ProductService {
     return instanceToPlain(product);
   }
 
-  async searchProducts(query: string): Promise<any> {
+  async searchProducts(query: string, color: string): Promise<any> {
     if (!query || query.trim() === '') {
       throw new BadRequestException('There are no results for your search');
     }
@@ -205,18 +205,18 @@ export class ProductService {
       .leftJoinAndSelect('variants.color', 'color')
       .leftJoinAndSelect('variants.variantSizes', 'variantSizes')
       .leftJoinAndSelect('variantSizes.size', 'size')
-      .where('product.name ILIKE :query', { query: `%${query}%` })
-      .orWhere('product.description ILIKE :query', { query: `%${query}%` })
-      .orWhere('product.code ILIKE :query', { query: `%${query}%` })
-      .orWhere('category.name ILIKE :query', { query: `%${query}%` })
-      .orWhere('subCategory.name ILIKE :query', { query: `%${query}%` })
-      .orWhere('brand.name ILIKE :query', { query: `%${query}%` })
-      .orWhere('variants.description ILIKE :query', { query: `%${query}%` })
-      .orWhere('color.color ILIKE :query', { query: `%${query}%` })
-      .orWhere('size.size_us::text ILIKE :query', { query: `%${query}%` })
-      .orWhere('size.size_eur::text ILIKE :query', { query: `%${query}%` })
-      .orWhere('size.size_cm::text ILIKE :query', { query: `%${query}%` })
-      .orWhere('product.sale_price::text ILIKE :query', { query: `%${query}%` })
+      .where('brand.name ILIKE :query', { query: `%${query}%` })
+      // .orWhere('product.description ILIKE :query', { query: `%${query}%` })
+      // .orWhere('product.code ILIKE :query', { query: `%${query}%` })
+      // .orWhere('category.name ILIKE :query', { query: `%${query}%` })
+      // .orWhere('subCategory.name ILIKE :query', { query: `%${query}%` })
+      // .orWhere('brand.name ILIKE :brand', { brand: `%${query}%` })
+      // .orWhere('variants.description ILIKE :query', { query: `%${query}%` })
+      .andWhere('color.color ILIKE :color', { color: `%${color}%` })
+      // .orWhere('size.size_us::text ILIKE :query', { query: `%${query}%` })
+      // .orWhere('size.size_eur::text ILIKE :query', { query: `%${query}%` })
+      // .orWhere('size.size_cm::text ILIKE :query', { query: `%${query}%` })
+      // .orWhere('product.sale_price::text ILIKE :query', { query: `%${query}%` })
       .take(50)
       .getMany();
 

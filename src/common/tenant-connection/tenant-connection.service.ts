@@ -23,6 +23,13 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 
 //? Entidades Steven
 import { Brand } from '../../catalogues/brand/entities/brand.entity';
+import { Category } from '../../catalogues/category/entities/category.entity';
+import { SubCategory } from '../../catalogues/subCategory/entities/sub-category.entity';
+import { Product } from '../../modules/products/entities/product.entity';
+import { ProductVariant } from '../../modules/productsVariant/entities/product-variant.entity';
+import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
+import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
+import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
 
 //? Entidades Pia
 
@@ -32,10 +39,6 @@ import { Employee } from '../../modules/users/entities/employee.entity';
 import { Client } from '../../modules/users/entities/client.entity';
 import { Role } from '../../modules/roles/entities/role.entity';
 
-import { Category } from '../../catalogues/category/entities/category.entity';
-import { SubCategory } from '../../catalogues/subCategory/entities/sub-category.entity';
-import { Product } from '../../modules/products/entities/product.entity';
-import { ProductVariant } from '../../modules/productsVariant/entities/product-variant.entity';
 import { Order } from '../../modules/orders/entities/order.entity';
 import { OrderDetail } from '../../modules/orders/entities/orderDetail.entity';
 import { MembershipStatus } from '../../catalogues/MembershipStatus/entities/membership-status.entity';
@@ -54,7 +57,6 @@ import { GlobalMembershipType } from 'src/master_data/global_membership_type/ent
 import { Customer } from 'src/master_data/customer/entities/customer.entity';
 import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
 import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
-
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
@@ -143,6 +145,22 @@ export class TenantConnectionService implements OnModuleDestroy {
         //? Entidades Pia
         Audit,
         Cut,
+        Todo,
+        MembershipType,
+        CompanyMembership,
+        //? Entidades Flor
+
+        //? Entidades Steven
+        SubCategory,
+        Category,
+        Product,
+        Brand,
+        ProductVariant,
+        Size,
+        VariantSize,
+        Color,
+
+        //? Entidades Pia
 
         //? Entidades Ebgueny
         User,

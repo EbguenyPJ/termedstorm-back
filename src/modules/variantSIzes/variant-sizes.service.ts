@@ -11,34 +11,40 @@ import { UpdateVariantSizeDto } from './dto/update-variant-sizes.dto';
 import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
 import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
 import { instanceToPlain } from 'class-transformer';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class VariantSizesService {
   constructor(
-    @InjectRepository(VariantSize)
+    @InjectTenantRepository(VariantSize)
     private readonly variantSizeRepository: Repository<VariantSize>,
-    @InjectRepository(Size)
+    @InjectTenantRepository(Size)
     private readonly sizeRepository: Repository<Size>,
-    @InjectRepository(ProductVariant)
+    @InjectTenantRepository(ProductVariant)
     private readonly productVariantRepository: Repository<ProductVariant>,
   ) {}
 
   async create(
     createDto: CreateVariantSizeDto,
-    variantProductFromArgs: ProductVariant,
-    manager: EntityManager,
+    variantProductFromArgs?: ProductVariant,
+    manager?: EntityManager,
   ): Promise<any> {
     const { size_id, stock, variant_product_id } = createDto;
 
-    const size = await manager.findOneBy(Size, { id: size_id });
+    const size = manager
+      ? await manager.findOneBy(Size, { id: size_id })
+      : await this.sizeRepository.findOneBy({ id: size_id });
     if (!size) {
       throw new NotFoundException(`Size with id ${size_id} not found`);
     }
+
     const variantProduct = variantProductFromArgs
       ? variantProductFromArgs
-      : await this.productVariantRepository.findOneBy({
-          id: variant_product_id,
-        });
+      : manager
+        ? await manager.findOneBy(ProductVariant, { id: variant_product_id })
+        : await this.productVariantRepository.findOneBy({
+            id: variant_product_id,
+          });
 
     if (!variantProduct) {
       throw new NotFoundException(
@@ -52,12 +58,21 @@ export class VariantSizesService {
       );
     }
 
-    const newVariantSize = manager.create(VariantSize, {
-      stock,
-      size,
-    });
+    const newVariantSize = manager
+      ? manager.create(VariantSize, {
+          stock,
+          size,
+          variantProduct,
+        })
+      : this.variantSizeRepository.create({
+          stock,
+          size,
+          variantProduct,
+        });
 
-    const saved = await manager.save(newVariantSize);
+    const saved = manager
+      ? await manager.save(newVariantSize)
+      : await this.variantSizeRepository.save(newVariantSize);
     return instanceToPlain(saved);
   }
 

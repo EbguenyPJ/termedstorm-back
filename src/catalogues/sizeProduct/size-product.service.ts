@@ -5,15 +5,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Size } from './entities/size-product.entity';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { CreateSizeDto } from './dto/create-size.dto';
 import { UpdateSizeDto } from './dto/update-size.dto';
 import { instanceToPlain } from 'class-transformer';
+import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class SizeService {
   constructor(
-    @InjectRepository(Size)
+    @InjectTenantRepository(Size)
     private readonly sizeRepository: Repository<Size>,
   ) {}
 

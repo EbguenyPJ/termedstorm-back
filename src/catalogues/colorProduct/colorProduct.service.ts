@@ -1,22 +1,32 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Color } from './entities/colorProduct.entity';
 import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
 import { instanceToPlain } from 'class-transformer';
+import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class ColorService {
   constructor(
-    @InjectRepository(Color)
+    @InjectTenantRepository(Color)
     private readonly colorRepository: Repository<Color>,
   ) {}
 
   async create(createDto: CreateColorDto) {
-    const exists = await this.colorRepository.findOneBy({ color: createDto.color.trim() });
+    const exists = await this.colorRepository.findOneBy({
+      color: createDto.color.trim(),
+    });
     if (exists) {
-      throw new BadRequestException(`Color '${createDto.color}' already exists`);
+      throw new BadRequestException(
+        `Color '${createDto.color}' already exists`,
+      );
     }
 
     const color = this.colorRepository.create(createDto);
