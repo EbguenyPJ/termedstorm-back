@@ -6,6 +6,7 @@ import typeormConfig, { masterDbConfig } from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 //FIXME Importa la plantilla del tenant también(rEVISAR NOMBRES DE IMPORTACIÓN EN CASO DE SER NECESARIO)
 import typeormConfigAlias, { tenantDbConfigTemplate } from './config/typeorm';
+import { JwtModule } from '@nestjs/jwt'; //! Necesario si TenantMiddleware decodifica JWT
 
 import { TodosModule } from './modules/todos/todos.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -26,9 +27,6 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { MembershipTypesModule } from './modules/subscriptions/membershipTypes/membership-types.module';
 import { MembershipsModule } from './modules/subscriptions/membership/memberships.module';
 import { CutModule } from './cuts/cut.module';
-import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
-import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
-import { CancellationModule } from './modules/cancellation/cancellation.module';
 
 //! Master module
 import { MasterDataModule } from './master_data/master_data.module';
@@ -37,9 +35,7 @@ import { CancellationReasonModule } from './catalogues/cancellationReason/cancel
 import { TenantConnectionModule } from './common/tenant-connection/tenant-connection.module';
 //! TenantMiddleware; funciona junto con el AuthModule
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
-import { GlobalMembershipTypeModule } from './master_data/global_membership_type/global-membership-type.module';
-import { CustomerModule } from './master_data/customer/customer.module';
-import { CompanySubscriptionModule } from './master_data/company_subscription/company-subscription.module';
+import { User } from './modules/users/entities/user.entity';
 
 @Module({
   imports: [
@@ -63,6 +59,18 @@ import { CompanySubscriptionModule } from './master_data/company_subscription/co
     TypeOrmModule.forRoot(masterDbConfig),
     //! Importa el TenantConnectionModule
     TenantConnectionModule,
+
+    //FIXME Configuración global de JWT (si es necesaria fuera de AuthModule, por ejemplo, en TenantMiddleware)
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') },
+      }),
+      global: true, //! Lo hace disponible globalmente
+    }),
+    //Entidades
     AuthModule, //BUG AutjModulke tiene que estar listado antes que  el TenantMiddleware en configure() en caso de usar JWT para identificar el tenant
     TodosModule,
     RolesModule,
@@ -82,22 +90,24 @@ import { CompanySubscriptionModule } from './master_data/company_subscription/co
     MembershipTypesModule,
     MembershipsModule,
     CutModule,
-    VariantSizesModule,
-    ColorModule,
-    SizeModule,
-    CancellationModule,
-    GlobalMembershipTypeModule,
-    CustomerModule,
-    CompanySubscriptionModule,
+    User,
+    //! MasterDataModule (usa la conexión 'masterConnection')
+    MasterDataModule,
   ],
   controllers: [],
   providers: [],
 })
 export class AppModule {
-  //[x] Configurar el middleware para que se ejecute en todas las rutas
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL }); //! Aplica a todas las rutas
+      //FIXME Excluye las rutas que no necesitan un tenant (ej. login, registro de zapaterías)
+      .exclude(
+        { path: 'customers', method: RequestMethod.POST }, //! Para registrar una nueva zapatería
+        { path: 'auth/login', method: RequestMethod.POST }, //!  ruta de login principal
+        { path: 'customers/:id/test-connection', method: RequestMethod.GET }, //! ruta de prueba temporal
+        //FIXME aquí se cualquier otra ruta que sea global y no requiera un tenant
+      )
+      .forRoutes({ path: '*', method: RequestMethod.ALL }); //! Aplica el middleware a todas las demás rutas
   }
 }

@@ -55,6 +55,7 @@ import { Customer } from 'src/master_data/customer/entities/customer.entity';
 import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
 import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
 
+
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
   private readonly logger = new Logger(TenantConnectionService.name);
