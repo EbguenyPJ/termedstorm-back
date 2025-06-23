@@ -7,7 +7,7 @@ import { In, Repository } from 'typeorm';
 import { Brand } from './entities/brand.entity';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
 import { instanceToPlain } from 'class-transformer';
 import { SubCategory } from '../subCategory/entities/sub-category.entity';
 import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';

@@ -3,12 +3,13 @@ import { Repository } from 'typeorm';
 import { MembershipStatus } from './entities/membership-status.entity';
 import { CreateMembershipStatusDto } from './dto/create-membership-status.dto';
 import { UpdateMembershipStatusDto } from './dto/update-membership-status.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class MembershipStatusService {
   constructor(
-    @InjectRepository(MembershipStatus)
+    @InjectTenantRepository(MembershipStatus)
     private readonly membershipStatusRepo: Repository<MembershipStatus>,
   ) {}
 

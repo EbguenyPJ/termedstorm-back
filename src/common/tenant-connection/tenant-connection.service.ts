@@ -20,6 +20,13 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 //! Ordenenlas en vase a quien creo cada entity correspondiente y si falta algunta la agregan
 
 //? Entidades Flor
+import { Order } from '../../modules/orders/entities/order.entity';
+import { OrderDetail } from '../../modules/orders/entities/orderDetail.entity';
+import { Membership } from '../../modules/subscriptions/membership/entities/membership.entity';
+import { MembershipType } from 'src/modules/subscriptions/membershipTypes/entities/membershipType.entity'; //[x] Imported  //[x] Imported
+import { Cancellation } from 'src/modules/cancellation/entities/cancellation.entity';
+import { CompanySubscription } from 'src/master_data/company_subscription/entities/company-subscription.entity';
+import { GlobalMembershipType } from 'src/master_data/global_membership_type/entities/global-membership-type.entity';
 
 //? Entidades Steven
 import { Brand } from '../../catalogues/brand/entities/brand.entity';
@@ -30,33 +37,24 @@ import { ProductVariant } from '../../modules/productsVariant/entities/product-v
 import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
 import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
 import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
+import { CancellationReason } from 'src/catalogues/cancellationReason/entities/cancellation-reason.entity';
+import { MembershipStatus } from '../../catalogues/MembershipStatus/entities/membership-status.entity';
 
 //? Entidades Pia
+import { Shipment } from 'src/modules/shipments/entities/shipment.entity';
+import { ShipmentSize } from 'src/modules/shipments/entities/shipment-size.entity';
+import { ShipmentVariant } from 'src/modules/shipments/entities/shioment-variant.entity';
+import { TypeOfPayment } from '../../modules/type-of-payment/type-of-payment.entity';
+import { Audit } from '../../audits/audit.entity';
+import { Cut } from '../../cuts/cut.entity';
 
 //? Entidades Ebgueny
+import { Todo } from '../../modules/todos/entities/todo.entity';
 import { User } from '../../modules/users/entities/user.entity';
 import { Employee } from '../../modules/users/entities/employee.entity';
 import { Client } from '../../modules/users/entities/client.entity';
 import { Role } from '../../modules/roles/entities/role.entity';
-
-import { Order } from '../../modules/orders/entities/order.entity';
-import { OrderDetail } from '../../modules/orders/entities/orderDetail.entity';
-import { MembershipStatus } from '../../catalogues/MembershipStatus/entities/membership-status.entity';
-import { Membership } from '../../modules/subscriptions/membership/entities/membership.entity';
-import { TypeOfPayment } from '../../modules/type-of-payment/type-of-payment.entity';
-import { Audit } from '../../audits/audit.entity';
-import { Cut } from '../../cuts/cut.entity';
-import { Todo } from '../../modules/todos/entities/todo.entity';
-import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity'; //[x] Imported
-import { MembershipType } from 'src/modules/subscriptions/membershipTypes/entities/membershipType.entity'; //[x] Imported  //[x] Imported
-import { SizeModule } from 'src/catalogues/sizeProduct/size-product.module';
-import { Cancellation } from 'src/modules/cancellation/entities/cancellation.entity';
-import { CancellationReason } from 'src/catalogues/cancellationReason/entities/cancellation-reason.entity';
-import { CompanySubscription } from 'src/master_data/company_subscription/entities/company-subscription.entity';
-import { GlobalMembershipType } from 'src/master_data/global_membership_type/entities/global-membership-type.entity';
 import { Customer } from 'src/master_data/customer/entities/customer.entity';
-import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
-import { Color } from 'src/catalogues/colorProduct/entities/colorProduct.entity';
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
@@ -145,22 +143,9 @@ export class TenantConnectionService implements OnModuleDestroy {
         //? Entidades Pia
         Audit,
         Cut,
-        Todo,
-        MembershipType,
-        CompanyMembership,
-        //? Entidades Flor
-
-        //? Entidades Steven
-        SubCategory,
-        Category,
-        Product,
-        Brand,
-        ProductVariant,
-        Size,
-        VariantSize,
-        Color,
-
-        //? Entidades Pia
+        Shipment,
+        ShipmentSize,
+        ShipmentVariant,
 
         //? Entidades Ebgueny
         User,

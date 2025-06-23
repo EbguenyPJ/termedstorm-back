@@ -38,6 +38,8 @@ import { TenantConnectionModule } from './common/tenant-connection/tenant-connec
 //! TenantMiddleware; funciona junto con el AuthModule
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { User } from './modules/users/entities/user.entity';
+import { CancellationModule } from './modules/cancellation/cancellation.module';
+import { ShipmentsModule } from './modules/shipments/shipments.module';
 
 @Module({
   imports: [
@@ -96,6 +98,10 @@ import { User } from './modules/users/entities/user.entity';
     Size,
     VariantSizesModule,
     ColorModule,
+    CancellationReasonModule,
+    CancellationModule,
+    ShipmentsModule,
+
     //! MasterDataModule (usa la conexión 'masterConnection')
     MasterDataModule,
   ],

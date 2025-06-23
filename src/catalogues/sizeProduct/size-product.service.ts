@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
 import { Size } from './entities/size-product.entity';
 import { Repository, DataSource } from 'typeorm';
 import { CreateSizeDto } from './dto/create-size.dto';
