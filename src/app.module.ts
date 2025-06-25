@@ -34,6 +34,8 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { User } from './modules/users/entities/user.entity';
 import { CancellationModule } from './modules/cancellation/cancellation.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
+import { ChatModule } from './modules/websocket-chat/chat.module';
+import { ChatGateway } from './modules/websocket-chat/chat.gateway';
 
 @Module({
   imports: [
@@ -82,6 +84,7 @@ import { ShipmentsModule } from './modules/shipments/shipments.module';
     CancellationReasonModule,
     CancellationModule,
     ShipmentsModule,
+    ChatModule,
     MasterDataModule,
   ],
   controllers: [],
