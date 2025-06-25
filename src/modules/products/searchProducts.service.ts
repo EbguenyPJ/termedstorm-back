@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectTenantRepository } from "src/common/typeorm-tenant-repository/tenant-repository.decorator";
 import { Product } from "./entities/product.entity";
-import { Repository } from "typeorm";
+import { Repository, Brackets } from "typeorm";
 import { instanceToPlain } from "class-transformer";
 
 @Injectable()
@@ -11,12 +11,12 @@ export class ProductSearchService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-async searchProducts(query: string, color: string): Promise<any> {
+  async searchProducts(query: string, color?: string): Promise<any> {
     if (!query || query.trim() === '') {
-      throw new BadRequestException('There are no results for your search');
+      throw new BadRequestException('No hay resultados para tu búsqueda.');
     }
 
-    const products = await this.productRepository
+    const queryBuilder = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.subCategory', 'subCategory')
@@ -24,21 +24,43 @@ async searchProducts(query: string, color: string): Promise<any> {
       .leftJoinAndSelect('product.variants', 'variants')
       .leftJoinAndSelect('variants.color', 'color')
       .leftJoinAndSelect('variants.variantSizes', 'variantSizes')
-      .leftJoinAndSelect('variantSizes.size', 'size')
-      .where('brand.name ILIKE :query', { query: `%${query}%` })
-      // .orWhere('product.description ILIKE :query', { query: `%${query}%` })
-      // .orWhere('product.code ILIKE :query', { query: `%${query}%` })
-      // .orWhere('category.name ILIKE :query', { query: `%${query}%` })
-      // .orWhere('subCategory.name ILIKE :query', { query: `%${query}%` })
-      // .orWhere('brand.name ILIKE :brand', { brand: `%${query}%` })
-      // .orWhere('variants.description ILIKE :query', { query: `%${query}%` })
-      .andWhere('color.color ILIKE :color', { color: `%${color}%` })
-      // .orWhere('size.size_us::text ILIKE :query', { query: `%${query}%` })
-      // .orWhere('size.size_eur::text ILIKE :query', { query: `%${query}%` })
-      // .orWhere('size.size_cm::text ILIKE :query', { query: `%${query}%` })
-      // .orWhere('product.sale_price::text ILIKE :query', { query: `%${query}%` })
-      .take(50)
-      .getMany();
+      .leftJoinAndSelect('variantSizes.size', 'size');
+
+    const keywords = query.split(/\s+/).filter(keyword => keyword.length > 0);
+
+    if (keywords.length > 0) {
+      queryBuilder.andWhere(new Brackets(qb => {
+        keywords.forEach((keyword, index) => {
+          const searchPattern = `%${keyword}%`;
+          const condition = `
+            brand.name ILIKE :keyword${index} OR
+            product.description ILIKE :keyword${index} OR
+            product.code ILIKE :keyword${index} OR
+            category.name ILIKE :keyword${index} OR
+            subCategory.name ILIKE :keyword${index} OR
+            variants.description ILIKE :keyword${index} OR
+            color.color ILIKE :keyword${index} OR
+            CAST(size.size_us AS TEXT) ILIKE :keyword${index} OR
+            CAST(size.size_eur AS TEXT) ILIKE :keyword${index} OR
+            CAST(size.size_cm AS TEXT) ILIKE :keyword${index} OR
+            CAST(product.sale_price AS TEXT) ILIKE :keyword${index}
+          `;
+          if (index === 0) {
+            qb.where(condition, { [`keyword${index}`]: searchPattern });
+          } else {
+            qb.orWhere(condition, { [`keyword${index}`]: searchPattern });
+          }
+        });
+      }));
+    }
+
+    if (color && color.trim() !== '') {
+      queryBuilder.andWhere('color.color ILIKE :color', { color: `%${color}%` });
+    }
+
+    queryBuilder.take(50); // Limita los resultados a 50
+
+    const products = await queryBuilder.getMany();
 
     return instanceToPlain(products);
   }

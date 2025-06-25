@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -29,7 +30,10 @@ export class ProductController {
   }
 
   @Get('search')
-  async searchProducts(@Query('query') query: string, @Query('color') color: string) {
+  async searchProducts(@Query('query') query: string, @Query('color') color?: string) {
+    if (!query || query.trim() === '') {
+      throw new BadRequestException('El parámetro "query" es obligatorio para la búsqueda.');
+    }
     return this.productSearchService.searchProducts(query, color);
   }
 
