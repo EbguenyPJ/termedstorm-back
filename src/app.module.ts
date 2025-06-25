@@ -40,6 +40,7 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { User } from './modules/users/entities/user.entity';
 import { CancellationModule } from './modules/cancellation/cancellation.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { ShipmentsModule } from './modules/shipments/shipments.module';
     CancellationReasonModule,
     CancellationModule,
     ShipmentsModule,
+    CheckoutModule,
 
     //! MasterDataModule (usa la conexión 'masterConnection')
     MasterDataModule,
