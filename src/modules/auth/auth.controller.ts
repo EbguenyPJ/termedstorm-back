@@ -34,9 +34,9 @@ export class AuthController {
     const accessToken = await this.authService.clientLogin(loginDto);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 día
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 días
     });
     return { message: 'Login successful' };
   }
@@ -65,9 +65,9 @@ export class AuthController {
 
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 días
     });
     response.redirect(
       'https://nivoapp.vercel.app/auth/success?from=google&type=client',
@@ -95,11 +95,11 @@ export class AuthController {
     const accessToken = await this.authService.employeeLogin(loginDto);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
       //secure: false, // <--- En desarrollo esto debe estar en false
       // secure: process.env.NODE_ENV === 'production', <---- esto en desarrollo debe estar comentado
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 días
       path: '/',
     });
     return { message: 'Login successful' };
@@ -120,11 +120,11 @@ export class AuthController {
       await this.authService.validateAndLoginGoogleEmployee(userFromGoogle);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
       //secure: false, // <--- En desarrollo esto debe estar en false
       // secure: process.env.NODE_ENV === 'production', <---- esto en desarrollo debe estar comentado
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 días,
     });
     response.redirect(
       'https://nivoapp.vercel.app/auth/success?from=google&type=employee',
