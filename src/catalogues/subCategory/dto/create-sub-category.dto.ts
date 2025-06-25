@@ -24,4 +24,8 @@ export class CreateSubCategoryDto {
   @IsNotEmpty()
   @IsUUID('4', { each: true })
   categories: string[];
+
+  @IsOptional() // NACHO
+  @IsString()
+  slug: string;
 }

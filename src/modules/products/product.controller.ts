@@ -51,4 +51,15 @@ export class ProductController {
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.delete(id);
   }
+
+
+
+// NACHO
+  @Get('category/:categorySlug/subcategory/:subCategorySlug')
+  getByCategoryAndSubcategory(
+  @Param('categorySlug') categorySlug: string,
+  @Param('subCategorySlug') subCategorySlug: string,
+) {
+  return this.productService.findByCategoryAndSubcategorySlugs(categorySlug, subCategorySlug);
+}
 }

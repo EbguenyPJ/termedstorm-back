@@ -19,7 +19,7 @@ import { Brand } from 'src/catalogues/brand/entities/brand.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
 import { Size } from 'src/catalogues/sizeProduct/entities/size-product.entity';
 import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
-
+import { slugify } from '../../utils/slugify'; //NACHO
 @Injectable()
 export class ProductService {
   constructor(
@@ -29,6 +29,8 @@ export class ProductService {
     private readonly productVariantRepository: Repository<ProductVariant>,
     @InjectTenantRepository(Color)
     private readonly colorRepository: Repository<Color>,
+    @InjectTenantRepository(SubCategory)
+    private readonly subCategoryRepository: Repository<SubCategory>, // NACHO
     private readonly variantService: ProductVariantService,
     private readonly dataSource: DataSource,
   ) {}
@@ -83,7 +85,18 @@ export class ProductService {
         );
       }
 
-      const product = queryRunner.manager.create(Product, productData);
+      let slug = slugify(productData.name); // NACHO
+      const slugExists = await queryRunner.manager.findOne(Product, {
+        where: { slug },
+      });
+      if (slugExists) {
+        slug = `${slug}-${Date.now()}`;
+      }
+
+      const product = queryRunner.manager.create(Product, {
+        ...productData,
+        slug, // NACHO
+      });
       const savedProduct = await queryRunner.manager.save(product);
 
       if (variants && variants.length > 0) {
@@ -212,7 +225,7 @@ export class ProductService {
       // .orWhere('subCategory.name ILIKE :query', { query: `%${query}%` })
       // .orWhere('brand.name ILIKE :brand', { brand: `%${query}%` })
       // .orWhere('variants.description ILIKE :query', { query: `%${query}%` })
-      .andWhere('color.color ILIKE :color', { color: `%${color}%` })
+      // .andWhere('color.color ILIKE :color', { color: `%${color}%` })  // NACHO
       // .orWhere('size.size_us::text ILIKE :query', { query: `%${query}%` })
       // .orWhere('size.size_eur::text ILIKE :query', { query: `%${query}%` })
       // .orWhere('size.size_cm::text ILIKE :query', { query: `%${query}%` })
@@ -266,5 +279,49 @@ export class ProductService {
         product: true,
       },
     });
+  }
+
+  // NACHO
+  async findByCategoryAndSubcategorySlugs(
+    categorySlug: string,
+    subCategorySlug: string,
+  ): Promise<any> {
+    const subCategory = await this.subCategoryRepository.findOne({
+      where: { slug: subCategorySlug },
+      relations: ['categories'],
+    });
+
+    if (!subCategory) {
+      throw new NotFoundException(
+        `Subcategoría ${subCategorySlug} no encontrada`,
+      );
+    }
+
+    const belongsToCategory = subCategory.categories.some(
+      (cat) => cat.slug === categorySlug,
+    );
+    
+    if (!belongsToCategory) {
+      throw new BadRequestException(
+        'Esa subcategoría no pertenece a la categoría indicada',
+      );
+    }
+
+    const products = await this.productRepository.find({
+      where: {
+        subCategory: { id: subCategory.id },
+      },
+      relations: [
+        'variants',
+        'variants.color',
+        'variants.variantSizes',
+        'variants.variantSizes.size',
+        'subCategory',
+        'category',
+        'brand',
+      ],
+    });
+
+    return instanceToPlain(products);
   }
 }

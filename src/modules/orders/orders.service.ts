@@ -111,8 +111,8 @@ export class OrdersService {
     const session = await this.stripeService.createCheckoutSession(
       lineItems,
       metadata,
-      'http://aca-va-la-pag.com/pago-exitoso',
-      'http://la-pagina-again.com/pago-cancelado',
+      'http://localhost:4000/payment-success',
+      'http://localhost:4000/payment-cancelled',
       stripeCustomer.id,
     );
 

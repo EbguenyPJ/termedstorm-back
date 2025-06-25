@@ -45,4 +45,10 @@ export class SubCategoryController {
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.subCategoryService.delete(id);
   }
+
+
+  @Get('slug/:slug') // NACHO
+  findBySlug(@Param('slug') slug: string) {
+    return this.subCategoryService.findBySlug(slug);
+  }
 }
