@@ -1,4 +1,10 @@
-import { IsString, IsBoolean, IsOptional, IsUUID, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  IsUUID,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateMembershipStatusDto {
   @IsString()
@@ -8,9 +14,9 @@ export class CreateMembershipStatusDto {
 
   @IsString()
   @IsNotEmpty()
-  membershipStatus: string;
+  membership_status: string;
 
   @IsBoolean()
   @IsOptional()
-  isActive?: boolean;
+  is_active?: boolean;
 }

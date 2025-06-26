@@ -17,14 +17,14 @@ export class CompanySubscription {
   id: string;
 
   @Column({ type: 'uuid' })
-  customer_id: string; 
+  customer_id: string;
 
   @ManyToOne(() => Customer, (customer) => customer.subscriptions)
   @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 
   @Column({ type: 'uuid' })
-  membership_type_id: string; 
+  membership_type_id: string;
 
   @ManyToOne(() => GlobalMembershipType)
   @JoinColumn({ name: 'membership_typeid' })

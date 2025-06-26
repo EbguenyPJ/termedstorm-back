@@ -9,9 +9,11 @@ import {
   JoinColumn,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Role } from '../../roles/entities/role.entity';
+import { Cancellation } from 'src/modules/cancellation/entities/cancellation.entity';
 
 @Entity({ name: 'employees' })
 export class Employee {
@@ -35,7 +37,13 @@ export class Employee {
   })
   roles: Role[];
 
-  @OneToOne(() => User, (user) => user.employee, { cascade: true }) 
+  @OneToOne(() => User, (user) => user.employee, { cascade: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToMany(() => Cancellation, (cancellation) => cancellation.employee, {
+    nullable: true,
+    cascade: true,
+  })
+  cancellation?: Cancellation[];
 }

@@ -2,33 +2,48 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  Inject,
-  Logger,
+  Scope,
+  Logger, // <<-- Importar Logger
 } from '@nestjs/common';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { CreateOrderDto, ProductOrderDto } from './dto/create-order.dto';
 import { StripeService } from '../stripe/stripe.service';
 import { Order } from './entities/order.entity';
 import { OrderDetail } from './entities/orderDetail.entity';
 import Stripe from 'stripe';
-import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ProductService } from '../products/product.service';
 import { Client } from '../users/entities/client.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
+import { CancellationService } from '../cancellation/cancellation.service';
+import { CreateCancellationDto } from '../cancellation/dto/create-cancellation.dto';
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
+import { InjectTenantRepository } from '../../common/typeorm-tenant-repository/tenant-repository.decorator';
+import { getTenantContext } from '../../common/context/tenant-context';
 
-@Injectable()
+@Injectable() // <-- Añadir esto explícitamente
 export class OrdersService {
-  private readonly logger = new Logger(OrdersService.name);
+  private readonly logger: Logger;
+  private readonly instanceId: string;
+
   constructor(
-    @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
     private readonly dataSource: DataSource,
     private readonly stripeService: StripeService,
     private readonly productService: ProductService,
-  ) {}
+    private readonly cancellationService: CancellationService,
+  ) {
+    this.logger = new Logger(OrdersService.name);
+    this.instanceId = Math.random().toString(36).substring(2, 9); // <-- ASIGNAMOS UN ID ÚNICO
+
+    // (Puedes dejar estos console.log temporales para confirmar)
+    console.log('--- OrdersService Constructor EXECUTED ---');
+    // console.log('Logger initialized in constructor:', !!this.logger);
+    console.log(
+      `DataSource in constructor (ID: ${this.instanceId}):`,
+      !!this.dataSource,
+    ); // <--- AÑADIR ESTO
+  }
 
   async processNewOrder(dto: CreateOrderDto) {
     if (dto.payment_method === 'Efectivo') {
@@ -71,6 +86,18 @@ export class OrdersService {
   }
 
   async createCardPaymentSession(dto: CreateOrderDto) {
+    // Obtener el customerId del contexto actual del tenant
+    const tenantContext = getTenantContext();
+    if (!tenantContext || !tenantContext.customerId) {
+      this.logger.error(
+        'No se pudo obtener el customerId del contexto del tenant para crear la sesión de Stripe.',
+      );
+      throw new BadRequestException(
+        'Falta información del tenant para procesar el pago.',
+      );
+    }
+    const currentTenantId = tenantContext.customerId;
+
     const variantIds = dto.products.map((p) => p.variant_id);
     const dbVariants =
       await this.productService.findManyVariantsByIds(variantIds);
@@ -94,20 +121,24 @@ export class OrdersService {
         quantity: orderItem.quantity,
       };
     });
+
+    // AÑADE el customerId de tu sistema a los metadatos de Stripe
     const metadata = {
       employeeId: dto.employee_id,
       clientEmail: dto.email || '',
       products: JSON.stringify(dto.products),
+      customerId: currentTenantId, // <-- AÑADIDO: ID del tenant para que Stripe lo devuelva en el webhook
     };
 
     const stripeCustomer = await this.stripeService.findOrCreateCustomer(
       dto.email,
       'Cliente',
+      currentTenantId, // <-- PASAR currentTenantId al crear o buscar el cliente de Stripe
     );
 
     const session = await this.stripeService.createCheckoutSession(
       lineItems,
-      metadata,
+      metadata, // Ya incluye el customerId
       'http://aca-va-la-pag.com/pago-exitoso',
       'http://la-pagina-again.com/pago-cancelado',
       stripeCustomer.id,
@@ -119,6 +150,28 @@ export class OrdersService {
   async createOrderFromStripeSession(
     session: Stripe.Checkout.Session,
   ): Promise<Order> {
+    console.log('--- DEBUGGING OrdersService.createOrderFromStripeSession ---');
+    // console.log('Value of "this":', this);
+    // console.log('Value of "this.logger":', this.logger);
+    // console.log('Type of "this.logger":', typeof this.logger);
+    console.log(
+      `Instance ID in createOrderFromStripeSession: ${this.instanceId}`,
+    ); // <-- AÑADIMOS ESTO
+    // console.log(
+    //   `DataSource in createOrderFromStripeSession: ${!!this.dataSource}`,
+    // ); // <--- AÑADIR ESTO
+
+    if (!this.logger) {
+      console.error(
+        'CRITICAL ERROR: this.logger is undefined right before use in createOrderFromStripeSession. (Should not happen now!)',
+      );
+      throw new Error(
+        'Logger no inicializado. Problema con la inyección de dependencias.',
+      );
+    }
+
+    this.logger.debug('🔥 LLEGAMOS a createOrderFromStripeSession');
+
     this.logger.debug(`--- DENTRO DE CREATE ORDER FROM STRIPE SESSION ---`, {
       sessionId: session.id,
     });
@@ -164,96 +217,109 @@ export class OrdersService {
   }
 
   async buildOrderInTransaction(
-  data: {
-    employeeId: string;
-    clientEmail: string | null;
-    orderProducts: ProductOrderDto[];
-    dbVariants: ProductVariant[];
-    totalOrder: number;
-  },
-  entityManager: EntityManager,
-): Promise<Order> {
-  const { employeeId, clientEmail, orderProducts, dbVariants, totalOrder } = data;
+    data: {
+      employeeId: string;
+      clientEmail: string | null;
+      orderProducts: ProductOrderDto[];
+      dbVariants: ProductVariant[];
+      totalOrder: number;
+    },
+    entityManager: EntityManager,
+  ): Promise<Order> {
+    const { employeeId, clientEmail, orderProducts, dbVariants, totalOrder } =
+      data;
 
-  const employee = await entityManager.findOneBy(Employee, { id: employeeId });
-  if (!employee) {
-    throw new NotFoundException(`Empleado con ID ${employeeId} no encontrado.`);
-  }
-
-  let client: Client | null = null;
-  if (clientEmail) {
-    client = await entityManager.findOne(Client, {
-      where: { user: { email: clientEmail } },
-      relations: ['user'],
+    const employee = await entityManager.findOneBy(Employee, {
+      id: employeeId,
     });
-  }
-
-  const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
-
-  const variantSizeRecords: VariantSize[] = [];
-
-  for (const item of orderProducts) {
-    const variant = variantMap.get(item.variant_id);
-    if (!variant) {
-      throw new NotFoundException(`Variante con ID ${item.variant_id} no encontrada.`);
-    }
-
-    const variantSize = await entityManager.findOne(VariantSize, {
-      where: {
-        variantProduct: { id: item.variant_id },
-        size: { id: item.size_id },
-      },
-      relations: ['variantProduct', 'size'],
-    });
-
-    if (!variantSize) {
+    if (!employee) {
       throw new NotFoundException(
-        `No se encontró relación de talla para la variante ${variant.description}.`,
+        `Empleado con ID ${employeeId} no encontrado.`,
       );
     }
 
-    if (variantSize.stock < item.quantity) {
-      throw new BadRequestException(
-        `Stock insuficiente para ${variant.product.name} (${variant.description}, talla ${variantSize.id}). Stock: ${variantSize.stock}.`,
-      );
+    let client: Client | null = null;
+    if (clientEmail) {
+      client = await entityManager.findOne(Client, {
+        where: { user: { email: clientEmail } },
+        relations: ['user'],
+      });
     }
 
-    await entityManager.decrement(
-      VariantSize,
-      { id: variantSize.id },
-      'stock',
-      item.quantity,
+    const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
+
+    const variantSizeRecords: VariantSize[] = [];
+
+    for (const item of orderProducts) {
+      const variant = variantMap.get(item.variant_id);
+      if (!variant) {
+        throw new NotFoundException(
+          `Variante con ID ${item.variant_id} no encontrada.`,
+        );
+      }
+
+      const variantSize = await entityManager.findOne(VariantSize, {
+        where: {
+          variantProduct: { id: item.variant_id },
+          size: { id: item.size_id },
+        },
+        relations: ['variantProduct', 'size'],
+      });
+
+      if (!variantSize) {
+        throw new NotFoundException(
+          `No se encontró relación de talla para la variante ${variant.description}.`,
+        );
+      }
+
+      if (variantSize.stock < item.quantity) {
+        throw new BadRequestException(
+          `Stock insuficiente para ${variant.product.name} (${variant.description}, talla ${variantSize.id}). Stock: ${variantSize.stock}.`,
+        );
+      }
+
+      await entityManager.decrement(
+        VariantSize,
+        { id: variantSize.id },
+        'stock',
+        item.quantity,
+      );
+
+      variantSizeRecords.push(variantSize);
+    }
+
+    const order = new Order();
+    order.employee = employee;
+    order.client = client ?? null;
+    order.total_order = totalOrder;
+    order.total_products = orderProducts.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
     );
+    order.date = new Date().toISOString().split('T')[0];
+    order.time = new Date().toTimeString().split(' ')[0];
 
-    variantSizeRecords.push(variantSize);
-  }
+    order.details = orderProducts.map((item, index) => {
+      const variant = variantMap.get(item.variant_id)!;
+      const variantSize = variantSizeRecords[index];
 
-  const order = new Order();
-  order.employee = employee;
-  order.client = client ?? null;
-  order.total_order = totalOrder;
-  order.total_products = orderProducts.reduce((sum, item) => sum + item.quantity, 0);
-  order.date = new Date().toISOString().split('T')[0];
-  order.time = new Date().toTimeString().split(' ')[0];
-
-  order.details = orderProducts.map((item, index) => {
-    const variant = variantMap.get(item.variant_id)!;
-    return entityManager.create(OrderDetail, {
-      variant,
-      price: variant.product.sale_price,
-      total_amount_of_products: item.quantity,
-      subtotal_order: variant.product.sale_price * item.quantity,
-      // Puedes guardar la talla referenciando variantSizeRecords[index] si tu modelo lo permite
+      return entityManager.create(OrderDetail, {
+        variant,
+        variantSize: variantSize,
+        price: variant.product.sale_price,
+        total_amount_of_products: item.quantity,
+        subtotal_order: variant.product.sale_price * item.quantity,
+      });
     });
-  });
 
-  this.logger.log(`Orden creada exitosamente desde Stripe.`);
+    this.logger.log(`Orden creada exitosamente desde Stripe.`);
 
-  return entityManager.save(order);
-}
+    return entityManager.save(order);
+  }
 
   async findOneById(id: string): Promise<Order> {
-    const order = await this.orderRepository.findOne({
+    const orderRepository = this.dataSource.manager.getRepository(Order);
+    const order = await orderRepository.findOne({
       where: { id },
       relations: {
         employee: true,
@@ -275,7 +341,8 @@ export class OrdersService {
   }
 
   async findAll(): Promise<Order[]> {
-    return this.orderRepository.find({
+    const orderRepository = this.dataSource.manager.getRepository(Order);
+    return orderRepository.find({
       relations: {
         employee: true,
         client: { user: true },
@@ -288,7 +355,8 @@ export class OrdersService {
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
-    const order = await this.orderRepository.preload({
+    const orderRepository = this.dataSource.manager.getRepository(Order);
+    const order = await orderRepository.preload({
       id: id,
       ...updateOrderDto,
     });
@@ -297,15 +365,72 @@ export class OrdersService {
       throw new NotFoundException(`Orden con ID ${id} no encontrada.`);
     }
 
-    return this.orderRepository.save(order);
+    return orderRepository.save(order);
   }
 
-  async delete(id: string): Promise<{ message: string }> {
-    const order = await this.orderRepository.findOneBy({ id });
-    if (!order) {
-      throw new NotFoundException(`Orden con id ${id} no encontrada`);
-    }
-    await this.orderRepository.delete(id);
-    return { message: `Orden  con id ${id} eliminado ` };
+  async cancelOrder(
+    orderId: string,
+    employeeId: string,
+    dto: CreateCancellationDto,
+  ): Promise<Order> {
+    return this.dataSource.transaction(async (entityManager) => {
+      const order = await entityManager.findOne(Order, {
+        where: { id: orderId },
+        relations: ['details', 'details.variant', 'cancellation'],
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Orden con Id ${orderId} no encontrada.`);
+      }
+
+      if (order.cancellation) {
+        throw new BadRequestException(
+          `La orden con Id ${orderId} ya fue cancelada.`,
+        );
+      }
+
+      for (const detail of order.details) {
+        const variantSize = await entityManager.findOne(VariantSize, {
+          where: {
+            variantProduct: { id: detail.variant.id },
+            // Necesitarías el size_id aquí si el stock es por talla
+            // y orderDetail no lo guarda directamente.
+            // Si orderDetail.variantSize es una relación, puedes usarlo:
+            // size: { id: detail.variantSize.size.id }
+          },
+        });
+
+        if (variantSize) {
+          await entityManager.increment(
+            VariantSize,
+            { id: variantSize.id },
+            'stock',
+            detail.total_amount_of_products,
+          );
+        } else {
+          this.logger.warn(
+            `No se encontró VariantSize para la variante ${detail.variant.id} al intentar restituir stock.`,
+          );
+        }
+      }
+
+      const cancellation = await this.cancellationService.create(
+        {
+          order,
+          employeeId: employeeId,
+          reasonId: dto.cancellation_reason_id,
+          comment: dto.comment,
+        },
+        entityManager,
+      );
+
+      order.cancellation = cancellation;
+
+      this.logger.log(
+        `Orden ${orderId} cancelada por empleado ${employeeId}. Stock restituido.`,
+      );
+
+      return entityManager.save(order);
+    });
   }
 }

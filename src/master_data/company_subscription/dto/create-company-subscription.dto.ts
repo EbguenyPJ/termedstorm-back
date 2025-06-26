@@ -22,8 +22,8 @@ enum PaymentStatus {
 
 export class CreateCompanySubscriptionDto {
   @IsUUID()
-  @IsNotEmpty()
-  customer_d: string; // ID de la zapatería a la que pertenece la suscripción
+  @IsNotEmpty() //? PREGUNTAR aca modifique id: decia customer_d , es incorrecto verdad ?
+  customer_id: string; // ID de la zapatería a la que pertenece la suscripción
 
   @IsUUID()
   @IsNotEmpty()
@@ -33,6 +33,11 @@ export class CreateCompanySubscriptionDto {
   @IsNotEmpty()
   @MaxLength(255)
   stripe_subscription_id: string; // ID de la suscripción en Stripe
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  stripe_customer_id: string; // ID de cliente en stripe
 
   @IsDateString()
   @IsNotEmpty()
@@ -50,5 +55,5 @@ export class CreateCompanySubscriptionDto {
   @IsString()
   @IsNotEmpty()
   @IsEnum(PaymentStatus)
-  paymentStatus: string;
+  payment_status: string;
 }

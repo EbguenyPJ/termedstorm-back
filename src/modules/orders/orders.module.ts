@@ -1,26 +1,32 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { forwardRef, Module, Scope } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 import { StripeModule } from '../stripe/stripe.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+//import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { OrderDetail } from './entities/orderDetail.entity';
 import { ProductModule } from '../products/product.module';
-import { Audit } from 'src/audits/audit.entity';
-import { Employee } from '../users/entities/employee.entity';
 import { TypeOfPayment } from '../type-of-payment/type-of-payment.entity';
-import { Client } from '../users/entities/client.entity';
+import { CancellationModule } from '../cancellation/cancellation.module';
+import { TenantTypeOrmModule } from '../../common/typeorm-tenant-repository/tenant-repository.provider';
 
 @Module({
   imports: [
     forwardRef(() => StripeModule),
-    TypeOrmModule.forFeature([Order, OrderDetail, TypeOfPayment]),
+    TenantTypeOrmModule.forFeature([Order, OrderDetail, TypeOfPayment]),
     SubscriptionsModule,
     ProductModule,
+    CancellationModule,
   ],
   controllers: [OrdersController],
-  providers: [OrdersService],
+  providers: [
+    {
+      provide: OrdersService,
+      useClass: OrdersService,
+      scope: Scope.REQUEST, // <-- ¡CAMBIO CRÍTICO AQUÍ!
+    },
+  ],
   exports: [OrdersService],
 })
 export class OrdersModule {}

@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MembershipType } from './entities/membershipType.entity';
 import { CreateMembershipTypeDto } from './dto/create-membership-type.dto';
 import { UpdateMembershipTypeDto } from './dto/update-membership-type.dto';
+import { InjectTenantRepository } from '../../../common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class MembershipTypesService {
   constructor(
-    @InjectRepository(MembershipType)
+    @InjectTenantRepository(MembershipType)
     private readonly membershipTypeRepository: Repository<MembershipType>,
   ) {}
 
@@ -48,7 +49,7 @@ export class MembershipTypesService {
 
   async remove(id: string): Promise<{ message: string }> {
     const type = await this.findOne(id);
-    await this.membershipTypeRepository.remove(type);
+    await this.membershipTypeRepository.softDelete(id);
     return { message: `MembershipType con ID "${id}" eliminado.` };
   }
 }

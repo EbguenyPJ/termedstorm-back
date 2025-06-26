@@ -9,7 +9,6 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { CompanyMembership } from '../../membershipTypes/entities/companyMembership.entity';
 import { MembershipType } from '../../membershipTypes/entities/membershipType.entity';
 import { Client } from 'src/modules/users/entities/client.entity';
 import { MembershipStatus } from 'src/catalogues/MembershipStatus/entities/membership-status.entity';
@@ -32,20 +31,16 @@ export class Membership {
   stripe_customer_id: string;
 
   @ManyToOne(() => MembershipType)
-  @JoinColumn({ name: 'tc_membership_type_relation' })
+  @JoinColumn({ name: 'tc_membership_type_id' })
   type: MembershipType;
 
   @ManyToOne(() => MembershipStatus)
-  @JoinColumn({ name: 'tc_membership_status_relation' })
+  @JoinColumn({ name: 'tc_membership_status_id' })
   status: MembershipStatus;
 
   @ManyToOne(() => Client)
-  @JoinColumn({ name: 'tw_clients_relation' })
+  @JoinColumn({ name: 'tw_clients_id' })
   client: Client;
-
-  @OneToOne(() => CompanyMembership)
-  @JoinColumn({ name: 'tw_company_membership_relation' })
-  company_membership: CompanyMembership;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
   updated_at: Date;

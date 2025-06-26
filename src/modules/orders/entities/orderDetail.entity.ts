@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Order } from './order.entity';
 import { ProductVariant } from 'src/modules/productsVariant/entities/product-variant.entity';
+import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
 
 @Entity('tw_order_details')
 export class OrderDetail {
@@ -40,6 +41,10 @@ export class OrderDetail {
   order: Order;
 
   @ManyToOne(() => ProductVariant)
-  @JoinColumn({ name: 'tw_product_variant_relation' })
+  @JoinColumn({ name: 'tw_product_variant_id' })
   variant: ProductVariant;
+
+  @ManyToOne(() => VariantSize)
+  @JoinColumn({ name: 'tw_variant_size_id' })
+  variantSize: VariantSize;
 }

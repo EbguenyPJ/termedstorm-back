@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+//import { TypeOrmModule } from '@nestjs/typeorm';
 
 //? Entidades y módulos de componentes de datos maestros
 import { Customer } from './customer/entities/customer.entity';

@@ -1,13 +1,9 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-// import typeorm from './config/typeorm';
-//! Inicializar la conexión maestra
 import typeormConfig, { masterDbConfig } from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
-//FIXME Importa la plantilla del tenant también(rEVISAR NOMBRES DE IMPORTACIÓN EN CASO DE SER NECESARIO)
-import typeormConfigAlias, { tenantDbConfigTemplate } from './config/typeorm'; 
-import { JwtModule } from '@nestjs/jwt'; //! Necesario si TenantMiddleware decodifica JWT
-
+import typeormConfigAlias, { tenantDbConfigTemplate } from './config/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 
 import { TodosModule } from './modules/todos/todos.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -31,14 +27,15 @@ import { SizeModule } from './catalogues/sizeProduct/size-product.module';
 import { Size } from './catalogues/sizeProduct/entities/size-product.entity';
 import { ColorModule } from './catalogues/colorProduct/colorProduct.module';
 import { VariantSizesModule } from './modules/variantSIzes/variant-sizes.module';
-//! Master module
 import { MasterDataModule } from './master_data/master_data.module';
-//! TenantConnectionModule
+import { CancellationReasonModule } from './catalogues/cancellationReason/cancellation-reason.module';
 import { TenantConnectionModule } from './common/tenant-connection/tenant-connection.module';
-//! TenantMiddleware; funciona junto con el AuthModule
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { User } from './modules/users/entities/user.entity';
-import { NotificationsModule } from './modules/notifications/notifications.module';
+import { CancellationModule } from './modules/cancellation/cancellation.module';
+import { ShipmentsModule } from './modules/shipments/shipments.module';
+import { ChatModule } from './modules/websocket-chat/chat.module';
+import { ChatGateway } from './modules/websocket-chat/chat.gateway';import { NotificationsModule } from './modules/notifications/notifications.module';
 
 
 @Module({
@@ -47,24 +44,12 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
       isGlobal: true,
       load: [typeormConfigAlias],
     }),
-    //HACK Esta conexión por defecto ('nivo') se puede mantener temporalmente para pruebas
-    //$ o en caso de tener rutas que NO están ligadas a un tenant específico (ej. la ruta de login
-    //$ para los empleados de las zapaterías, antes de que se establezca el contexto del tenant).
-    //$ Sin embargo, para la mayoría de los módulos de POS, esta conexión será reemplazada
-    //$ por la conexión dinámica inyectada por el TenantInterceptor.
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => config.get('typeorm')!,
-      //HACK Se puedee comentar esta configuración temporalmente si solo se quiere que la aplicación
-      //$ intente conectarse a la DB del tenant de forma dinámica en lugar de una por defecto.
-      //$ Si se deja, la conexión 'default' seguirá apuntando a 'nivo'.
     }),
-    //! CONFIGURACIÓN BASE DE DATOS MAESTRA
     TypeOrmModule.forRoot(masterDbConfig),
-    //! Importa el TenantConnectionModule
     TenantConnectionModule,
-
-    //FIXME Configuración global de JWT (si es necesaria fuera de AuthModule, por ejemplo, en TenantMiddleware)
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -72,10 +57,9 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') },
       }),
-      global: true, //! Lo hace disponible globalmente
+      global: true,
     }),
-    //Entidades
-    AuthModule, //BUG AutjModulke tiene que estar listado antes que  el TenantMiddleware en configure() en caso de usar JWT para identificar el tenant
+    AuthModule,
     TodosModule,
     RolesModule,
     EmployeesModule,
@@ -99,24 +83,25 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     VariantSizesModule,
     ColorModule,
     NotificationsModule,
-    //! MasterDataModule (usa la conexión 'masterConnection')
+    CancellationReasonModule,
+    CancellationModule,
+    ShipmentsModule,
+    ChatModule,
     MasterDataModule,
   ],
   controllers: [],
   providers: [],
 })
-  
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
-      //FIXME Excluye las rutas que no necesitan un tenant (ej. login, registro de zapaterías)
       .exclude(
-        { path: 'customers', method: RequestMethod.POST }, //! Para registrar una nueva zapatería
-        { path: 'auth/login', method: RequestMethod.POST }, //!  ruta de login principal
-        { path: 'customers/:id/test-connection', method: RequestMethod.GET }, //! ruta de prueba temporal
-        //FIXME aquí se cualquier otra ruta que sea global y no requiera un tenant
+        { path: 'customers', method: RequestMethod.POST },
+        { path: 'auth/login', method: RequestMethod.POST },
+        { path: 'customers/:id/test-connection', method: RequestMethod.GET },
+        { path: 'stripe/webhook', method: RequestMethod.POST },
       )
-      .forRoutes({ path: '*', method: RequestMethod.ALL }); //! Aplica el middleware a todas las demás rutas
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

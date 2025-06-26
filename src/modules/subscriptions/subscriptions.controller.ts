@@ -25,8 +25,9 @@ export class SubscriptionsController {
   }
 
   @Get('status/:userId')
-  async getMembershipStatus(@Param('userId') userId: string) {
-    const isActive = await this.subscriptionsService.isMembershipActive(userId);
+  async getClientMembershipStatus(@Param('userId') userId: string) {
+    const isActive =
+      await this.subscriptionsService.isClientMembershipActive(userId);
     return { userId, isActive };
   }
 }

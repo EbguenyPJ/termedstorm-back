@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+//import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Membership } from './entities/membership.entity';
+import { InjectTenantRepository } from '../../../common/typeorm-tenant-repository/tenant-repository.decorator';
 
 @Injectable()
 export class MembershipsService {
   constructor(
-    @InjectRepository(Membership)
+    @InjectTenantRepository(Membership)
     private readonly membershipRepository: Repository<Membership>,
   ) {}
 
@@ -16,7 +17,6 @@ export class MembershipsService {
         type: true,
         status: true,
         client: { user: true },
-        company_membership: { employee: { user: true } },
       },
       order: { updated_at: 'DESC' },
     });
@@ -29,7 +29,6 @@ export class MembershipsService {
         type: true,
         status: true,
         client: { user: true },
-        company_membership: { employee: { user: true } },
       },
     });
     if (!membership) {

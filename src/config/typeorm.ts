@@ -22,7 +22,7 @@ export const tenantDbConfigTemplate: PostgresConnectionOptions = {
   entities: [join(__dirname, '/../**/*.entity.{js,ts}')],
   migrations: ['dist/migrations/*{.ts,.js}'],
   // autoLoadEntities: true,
- dropSchema: false,
+  dropSchema: false,
   synchronize:
     process.env.NODE_ENV !== 'production' &&
     process.env.ENABLE_TENANT_SYNC === 'true',
@@ -54,13 +54,6 @@ export const masterDbConfig: TypeOrmModuleOptions = {
 
 export const typeormConfig = tenantDbConfigTemplate; //XXX este par de líneas
 export default registerAs('typeorm', () => typeormConfig);
-
-
-
-
-
-
-
 
 // import { registerAs } from '@nestjs/config';
 // import { TypeOrmModuleOptions } from '@nestjs/typeorm';
