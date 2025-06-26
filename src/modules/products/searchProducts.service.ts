@@ -58,7 +58,7 @@ export class ProductSearchService {
       queryBuilder.andWhere('color.color ILIKE :color', { color: `%${color}%` });
     }
 
-    queryBuilder.take(50); // Limita los resultados a 50
+    queryBuilder.take(50);
 
     const products = await queryBuilder.getMany();
 
