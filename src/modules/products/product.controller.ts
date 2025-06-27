@@ -23,7 +23,8 @@ import { ProductsCsvService } from './csv/product-csv.service';
 import { Response } from 'express';
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService,
+  constructor(
+    private readonly productService: ProductService,
     private readonly csvService: ProductsCsvService,
   ) {}
 
@@ -34,7 +35,10 @@ export class ProductController {
   }
 
   @Get('search')
-  async searchProducts(@Query('query') query: string, @Query('color') color: string) {
+  async searchProducts(
+    @Query('query') query: string,
+    @Query('color') color: string,
+  ) {
     return this.productService.searchProducts(query, color);
   }
 
@@ -61,13 +65,23 @@ export class ProductController {
     return this.productService.delete(id);
   }
 
+  // NACHO
+  @Get('category/:categorySlug/subcategory/:subCategorySlug')
+  getByCategoryAndSubcategory(
+    @Param('categorySlug') categorySlug: string,
+    @Param('subCategorySlug') subCategorySlug: string,
+  ) {
+    return this.productService.findByCategoryAndSubcategorySlugs(
+      categorySlug,
+      subCategorySlug,
+    );
+  }
 
-   @Get('csv/download-prices')
+  @Get('csv/download-prices')
   async downloadPricesCsv(@Res() res: Response) {
     const filePath = await this.csvService.exportPricesToCsv();
     res.download(filePath, 'productos-precios.csv');
   }
-
 
   @Post('csv/update-prices')
   @UseInterceptors(

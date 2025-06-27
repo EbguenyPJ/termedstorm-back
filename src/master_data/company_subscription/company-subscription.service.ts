@@ -38,8 +38,8 @@ export class CompanySubscriptionService {
     const session = await this.stripeService.createSubscriptionCheckoutSession(
       stripeCustomer.id,
       price_id,
-      'http://aca-va-la-pagina-del-front/pago-exitoso',
-      'http://aca-va-la-pagina-del-front/pago-cancelado',
+      'http://localhost:4000/payment-success',
+      'http://localhost:4000/payment-cancelled',
       { context: 'customer' },
     );
 

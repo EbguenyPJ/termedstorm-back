@@ -138,7 +138,7 @@ export class OrdersService {
 
     const session = await this.stripeService.createCheckoutSession(
       lineItems,
-      metadata, // Ya incluye el customerId
+      metadata,
       'http://aca-va-la-pag.com/pago-exitoso',
       'http://la-pagina-again.com/pago-cancelado',
       stripeCustomer.id,
