@@ -11,6 +11,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { instanceToPlain } from 'class-transformer';
 import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
 import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
+import { slugify } from '../../utils/slugify'; //NACHO
 
 @Injectable()
 export class CategoryService {
@@ -21,6 +22,7 @@ export class CategoryService {
 
   async create(createDto: CreateCategoryDto): Promise<any> {
     const { name, key } = createDto;
+     const slug = slugify(name); //NACHO
 
     const existing = await this.categoryRepository.findOne({
       where: [{ name }, { key }],
@@ -35,6 +37,7 @@ export class CategoryService {
     }
     const category = this.categoryRepository.create({
       ...createDto,
+       slug, // NACHO
     });
     const saved = await this.categoryRepository.save(category);
     return instanceToPlain(saved);
@@ -85,5 +88,19 @@ export class CategoryService {
       throw new NotFoundException(`Category with id ${id} not found`);
     await this.categoryRepository.softDelete(id);
     return { message: `Category with id ${id} deactivated successfully` };
+  }
+
+   // NACHO
+  async findBySlug(slug: string): Promise<Category> {
+    const category = await this.categoryRepository.findOne({
+      where: { slug },
+      relations: ['subcategories'],
+    });
+
+    if (!category) {
+      throw new NotFoundException('Categoría no encontrada');
+    }
+
+    return category;
   }
 }

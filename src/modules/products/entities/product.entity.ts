@@ -50,6 +50,10 @@ export class Product {
   @Column({ type: 'uuid' })
   brand_id: string;
 
+    // NACHO
+  @Column('varchar', { length: 200, unique: true })
+  slug: string;
+
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'category_id' })
   category: Category;

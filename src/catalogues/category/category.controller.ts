@@ -45,4 +45,9 @@ export class CategoryController {
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.categoryService.delete(id);
   }
+
+    @Get('slug/:slug') // NACHO
+  findBySlug(@Param('slug') slug: string) {
+    return this.categoryService.findBySlug(slug);
+  }
 }

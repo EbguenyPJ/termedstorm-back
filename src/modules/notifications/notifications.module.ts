@@ -8,10 +8,11 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { join } from 'path';
 import { Membership } from '../subscriptions/membership/entities/membership.entity';
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Notification, Membership, VariantSize]),
+    TypeOrmModule.forFeature([Notification, Membership, VariantSize, Order]),
     MailerModule.forRoot({
       transport: {
         service: 'gmail',

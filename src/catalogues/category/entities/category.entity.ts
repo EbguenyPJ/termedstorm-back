@@ -31,6 +31,12 @@ export class Category {
   })
   image: string;
 
+    @Column('varchar', { //NACHO
+  length: 120,
+  unique: true,
+  })
+  slug: string;
+
   @ManyToMany(() => SubCategory, (subCategory) => subCategory.categories)
   @JoinTable({ name: 'tr_category_sub_category' })
   subcategories: SubCategory[];

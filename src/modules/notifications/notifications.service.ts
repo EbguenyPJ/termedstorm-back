@@ -6,13 +6,14 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { NotificationType } from './types/notification-type.enum';
 import { Client } from 'src/modules/users/entities/client.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
-    private readonly repo: Repository<Notification>,
-    private readonly mailer: MailerService,
+    private readonly notificationRepository: Repository<Notification>,
+    private readonly mailerService: MailerService,
   ) {}
 
   async sendNotification(options: {
@@ -25,7 +26,7 @@ export class NotificationsService {
     emailTemplate?: string;
     emailContext?: Record<string, any>;
   }) {
-    const notification = this.repo.create({
+    const notification = this.notificationRepository.create({
       type: options.type,
       title: options.title,
       message: options.message,
@@ -34,13 +35,13 @@ export class NotificationsService {
       sent_by_email: !!options.sendEmail,
     });
 
-    await this.repo.save(notification);
+    await this.notificationRepository.save(notification);
 
     if (options.sendEmail && options.emailTemplate) {
       const to = options.client?.user?.email || options.employee?.user?.email;
       const name = options.client?.user?.client || options.employee?.user?.client;
 
-      await this.mailer.sendMail({
+      await this.mailerService.sendMail({
         to,
         subject: options.title,
         template: options.emailTemplate,
@@ -54,46 +55,46 @@ export class NotificationsService {
     return notification;
   }
 
-  async sendPaymentSuccessEmail(order: Order) {
-  if (!order.client || !order.client.user?.email) {
-    this.logger.warn(`No se pudo enviar confirmación de pago: cliente sin email.`);
-    return;
-  }
+//   async sendPaymentSuccessEmail(order: Order) {
+//   if (!order.client || !order.client.user?.email) {
+//     this.logger.warn(`No se pudo enviar confirmación de pago: cliente sin email.`);
+//     return;
+//   }
 
-  const email = order.client.user.email;
-  const name = order.client.user.name ?? 'Cliente';
+//   const email = order.client.user.email;
+//   const name = order.client.user.client ?? 'Cliente';
 
-  const products = order.details.map((d) => ({
-    name: d.variant.product.name,
-    variant: d.variant.description,
-    quantity: d.total_amount_of_products,
-    price: d.price,
-  }));
+//   const products = order.details.map((d) => ({
+//     name: d.variant.product.name,
+//     variant: d.variant.description,
+//     quantity: d.total_amount_of_products,
+//     price: d.price,
+//   }));
 
-  await this.mailerService.sendMail({
-    to: email,
-    subject: 'Pago recibido - DreamTeam POS',
-    template: 'payment-success',
-    context: {
-      name,
-      products,
-      total: order.total_order.toFixed(2),
-      date: order.date,
-    },
-  });
+//   await this.mailerService.sendMail({
+//     to: email,
+//     subject: 'Pago recibido - DreamTeam POS',
+//     template: 'payment-success',
+//     context: {
+//       name,
+//       products,
+//       total: order.total_order.toFixed(2),
+//       date: order.date,
+//     },
+//   });
 
-  await this.notificationRepository.save(
-    this.notificationRepository.create({
-      type: 'payment-success',
-      client: order.client,
-      data: {
-        total: order.total_order,
-        orderId: order.id,
-        products,
-        date: order.date,
-      },
-    }),
-  );
-}
+//   await this.notificationRepository.save(
+//     this.notificationRepository.create({
+//       type: 'payment-success',
+//       client: order.client,
+//       data: {
+//         total: order.total_order,
+//         orderId: order.id,
+//         products,
+//         date: order.date,
+//       },
+//     }),
+//   );
+// }
 }
 

@@ -32,6 +32,13 @@ export class SubCategory {
   })
   image: string;
 
+    //NACHO
+  @Column('varchar', {
+    length: 120,
+    unique: true,
+  })
+  slug: string;
+
   @ManyToMany(() => Category, (category) => category.subcategories)
   categories: Category[];
 

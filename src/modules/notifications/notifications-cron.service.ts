@@ -6,6 +6,7 @@ import { Membership } from 'src/modules/subscriptions/membership/entities/member
 import { NotificationsService } from './notifications.service';
 import { NotificationType } from './types/notification-type.enum';
 import { VariantSize } from 'src/modules/variantSIzes/entities/variantSizes.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class NotificationsCronService {
@@ -15,6 +16,8 @@ export class NotificationsCronService {
     private readonly membershipRepo: Repository<Membership>,
     @InjectRepository(VariantSize)
     private readonly variantSizeRepo: Repository<VariantSize>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>
   ) {}
 
   @Cron('0 7 * * *')
@@ -74,32 +77,32 @@ export class NotificationsCronService {
     }
   }
 
-  @Cron('0 6 * * MON')
-  async sendWeeklySalesSummary() {
-    const orders = await this.orderRepo.createQueryBuilder('o')
-      .leftJoinAndSelect('o.client', 'client')
-      .where('o.date >= CURRENT_DATE - INTERVAL '7 day'')
-      .getMany();
+  // @Cron('0 6 * * MON')
+  // async sendWeeklySalesSummary() {
+  //   const orders = await this.orderRepository.createQueryBuilder('o')
+  //     .leftJoinAndSelect('o.client', 'client')
+  //     .where("o.date >= CURRENT_DATE - INTERVAL '7 day'")
+  //     .getMany();
 
-    const grouped = new Map<string, { client: Client, total: number }>();
+  //   const grouped = new Map<string, { client: Client, total: number }>();
 
-    for (const order of orders) {
-      if (!order.client) continue;
-      const entry = grouped.get(order.client.id) || { client: order.client, total: 0 };
-      entry.total += Number(order.total_order);
-      grouped.set(order.client.id, entry);
-    }
+  //   for (const order of orders) {
+  //     if (!order.client) continue;
+  //     const entry = grouped.get(order.client.id) || { client: order.client, total: 0 };
+  //     entry.total += Number(order.total_order);
+  //     grouped.set(order.client.id, entry);
+  //   }
 
-    for (const { client, total } of grouped.values()) {
-      await this.notificationsService.sendNotification({
-        type: NotificationType.SALES_SUMMARY,
-        title: 'Resumen semanal de ventas',
-        message: `Vendiste un total de $${total.toFixed(2)} esta semana.`,
-        client,
-        sendEmail: true,
-        emailTemplate: 'weekly-summary',
-        emailContext: { total: total.toFixed(2) },
-      });
-    }
-  }
+  //   for (const { client, total } of grouped.values()) {
+  //     await this.notificationsService.sendNotification({
+  //       type: NotificationType.SALES_SUMMARY,
+  //       title: 'Resumen semanal de ventas',
+  //       message: `Vendiste un total de $${total.toFixed(2)} esta semana.`,
+  //       client,
+  //       sendEmail: true,
+  //       emailTemplate: 'weekly-summary',
+  //       emailContext: { total: total.toFixed(2) },
+  //     });
+  //   }
+  // }
 }

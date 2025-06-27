@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsString, IsNotEmpty, IsUrl } from 'class-validator';
+import { IsString, IsNotEmpty, IsUrl, IsOptional } from 'class-validator';
 
 export class CreateCategoryDto {
   @ApiProperty({ example: 'ropa deportiva' })
@@ -19,4 +19,8 @@ export class CreateCategoryDto {
   @IsNotEmpty()
   @IsUrl()
   image: string;
+
+  @IsOptional() // NACHO
+  @IsString()
+  slug: string;
 }

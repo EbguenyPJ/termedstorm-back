@@ -12,6 +12,7 @@ import { Brand } from '../brand/entities/brand.entity';
 import { instanceToPlain } from 'class-transformer';
 import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
 import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
+import { slugify } from '../../utils/slugify'; //NACHO
 
 @Injectable()
 export class SubCategoryService {
@@ -64,9 +65,18 @@ export class SubCategoryService {
       );
     }
 
+    let slug = slugify(createDto.name); // NACHO
+    const slugExists = await this.subCategoryRepository.findOne({
+      where: { slug },
+    });
+    if (slugExists) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
     const subCategory = this.subCategoryRepository.create({
       ...createDto,
       categories: existingCategories,
+      slug, // NACHO
     });
     const saved = await this.subCategoryRepository.save(subCategory);
     return instanceToPlain(saved);
@@ -115,5 +125,21 @@ export class SubCategoryService {
       throw new NotFoundException(`SubCategory with id ${id} not found`);
     await this.subCategoryRepository.softDelete(id);
     return { message: `SubCategory with id ${id} deleted successfully` };
+  }
+
+    // NACHO
+  async findBySlug(slug: string): Promise<SubCategory> {
+    const subCategory = await this.subCategoryRepository.findOne({
+      where: { slug },
+      relations: {
+        categories: true,
+      },
+    });
+
+    if (!subCategory) {
+      throw new NotFoundException('Subcategoría no encontrada');
+    }
+
+    return subCategory;
   }
 }
