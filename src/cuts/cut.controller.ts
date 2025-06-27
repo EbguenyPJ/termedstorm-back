@@ -8,9 +8,9 @@ import {
   Delete,
   ParseIntPipe,
 } from '@nestjs/common';
-import { CutsService } from './cut.service'; 
-import { CreateCutDto } from './create-cutDto'; 
-import { UpdateCutDto } from './update-cutDto'; 
+import { CutsService } from './cut.service';
+import { CreateCutDto } from './create-cutDto';
+import { UpdateCutDto } from './update-cutDto';
 
 @Controller('cuts')
 export class CutsController {
@@ -27,21 +27,17 @@ export class CutsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.cutsService.findOne(id);
   }
 
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateCutDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: string, @Body() dto: UpdateCutDto) {
     return this.cutsService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.cutsService.remove(id);
   }
 }
-

@@ -16,18 +16,18 @@ export class CutsService {
     return this.repo.findAll();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const cut = await this.repo.findOne(id);
     if (!cut) throw new NotFoundException(`Cut #${id} not found`);
     return cut;
   }
 
-  update(id: number, dto: UpdateCutDto) {
+  update(id: string, dto: UpdateCutDto) {
     return this.repo.updateCut(id, dto);
   }
 
-  async remove(id: number) {
-    const cut = await this.findOne(id);
-    return this.repo.remove(cut);
+  async remove(id: string) {
+    await this.repo.softDelete(id);
+    return { message: 'Cut eliminado correctamente' };
   }
 }

@@ -5,7 +5,7 @@ import { createObjectCsvWriter } from 'csv-writer';
 import * as csv from 'csv-parser';
 
 import { Repository } from 'typeorm';
-import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
+import { InjectTenantRepository } from '../../../common/typeorm-tenant-repository/tenant-repository.decorator';
 
 import { Shipment } from '../entities/shipment.entity';
 import { ShipmentVariant } from '../entities/shioment-variant.entity';
@@ -47,12 +47,15 @@ export class ShipmentsCsvService {
       { id: 'stock', title: 'Stock' },
     ];
 
-    const query = this.shipmentRepo.createQueryBuilder('shipment')
+    const query = this.shipmentRepo
+      .createQueryBuilder('shipment')
       .leftJoinAndSelect('shipment.variants', 'variant')
       .leftJoinAndSelect('variant.sizes', 'size');
 
     if (code) {
-      query.andWhere('shipment.shipmentCode ILIKE :code', { code: `%${code}%` });
+      query.andWhere('shipment.shipmentCode ILIKE :code', {
+        code: `%${code}%`,
+      });
     }
 
     if (from) {
@@ -68,11 +71,11 @@ export class ShipmentsCsvService {
     const formattedData = data.flatMap((shipment) =>
       (shipment.variants || []).flatMap((variant) =>
         (variant.sizes || []).map((size) => ({
-          codigo: shipment.shipmentCode,
-          fecha: new Date(shipment.shipmentDate).toISOString().split('T')[0],
-          cantidad: shipment.totalProducts,
-          variantId: variant.id ?? '',
-          sizeId: size.id ?? '',
+          codigo: shipment.shipment_code,
+          fecha: new Date(shipment.shipment_date).toISOString().split('T')[0],
+          cantidad: shipment.total_products,
+          variant_id: variant.id ?? '',
+          size_id: size.id ?? '',
           stock: size.stock ?? '',
         })),
       ),
@@ -107,7 +110,7 @@ export class ShipmentsCsvService {
 
           for (const [code, rows] of groupedByCode.entries()) {
             const exists = await this.shipmentRepo.findOne({
-              where: { shipmentCode: code },
+              where: { shipment_code: code },
             });
 
             if (exists) {
@@ -117,24 +120,24 @@ export class ShipmentsCsvService {
             }
 
             const shipment = this.shipmentRepo.create({
-              shipmentCode: code,
-              shipmentDate: new Date(rows[0]['Fecha de embarque']),
-              totalProducts: Number(rows[0]['Cantidad productos']),
+              shipment_code: code,
+              shipment_date: new Date(rows[0]['Fecha de embarque']),
+              total_products: Number(rows[0]['Cantidad productos']),
             });
             const savedShipment = await this.shipmentRepo.save(shipment);
 
             for (const row of rows) {
-             const variant = this.variantRepo.create({
-              shipment: savedShipment,
-               totalSizes: 1, 
+              const variant = this.variantRepo.create({
+                shipment: savedShipment,
+                total_sizes: 1,
               });
-              
+
               const savedVariant = await this.variantRepo.save(variant);
 
-             const size = this.sizeRepo.create({
-              shipment: savedShipment,
-              variant: savedVariant,
-              stock: Number(row['Stock']),
+              const size = this.sizeRepo.create({
+                shipment: savedShipment,
+                variant: savedVariant,
+                stock: Number(row['Stock']),
               });
               await this.sizeRepo.save(size);
             }

@@ -8,13 +8,13 @@ import {
   DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Employee } from 'src/modules/users/entities/employee.entity'; 
-import { Audit } from 'src/audits/audit.entity'; 
+import { Employee } from '../modules/users/entities/employee.entity';
+import { Audit } from '../audits/audit.entity';
 
 @Entity('tw_cortes')
 export class Cut {
-  @PrimaryGeneratedColumn({ name: 'id_corte' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ name: 'd_fecha_corte', type: 'date' })
   date: string;
@@ -23,7 +23,7 @@ export class Cut {
   time: string;
 
   @Column({ name: 'n_cantidad_arqueos', type: 'int' })
-  auditCount: number;
+  audit_count: number;
 
   @Column({
     name: 'n_total_arqueos',
@@ -31,10 +31,10 @@ export class Cut {
     precision: 10,
     scale: 2,
   })
-  totalAudits: number;
+  total_audits: number;
 
   @Column({ name: 'n_cantidad_ventas', type: 'int' })
-  saleCount: number;
+  sale_count: number;
 
   @Column({
     name: 'n_total_ventas_dinero',
@@ -42,13 +42,13 @@ export class Cut {
     precision: 10,
     scale: 2,
   })
-  totalCashSales: number;
+  total_cash_sales: number;
 
   @Column({ name: 's_descripcion', type: 'varchar', length: 255 })
   description: string;
 
   @Column({ name: 'n_cantidad_gastos', type: 'int' })
-  expenseCount: number;
+  expense_count: number;
 
   @Column({
     name: 'n_total_gastos',
@@ -56,14 +56,14 @@ export class Cut {
     precision: 10,
     scale: 2,
   })
-  totalExpenses: number;
+  total_expenses: number;
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'id_empleado' })
   employee: Employee;
-  
-   @Column({ name: 'id_empleado', type: 'uuid' })
-  employeeId: string;
+
+  @Column({ name: 'id_empleado', type: 'uuid' })
+  employee_id: string;
 
   @OneToMany(() => Audit, (audit) => audit.cut)
   audits: Audit[];
@@ -72,5 +72,5 @@ export class Cut {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt?: Date;
+  deleted_at?: Date;
 }

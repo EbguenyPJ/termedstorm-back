@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Repository, IsNull } from 'typeorm';
-import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
+import { InjectTenantRepository } from '../common/typeorm-tenant-repository/tenant-repository.decorator';
 import { Cut } from './cut.entity';
-import { Audit } from 'src/audits/audit.entity';
+import { Audit } from '../audits/audit.entity';
 
 @Injectable()
 export class CutRepository {
@@ -23,7 +23,7 @@ export class CutRepository {
     return this.cutRepo.save(newCut);
   }
 
-  assignAuditsToCut(auditIds: number[], cutId: number) {
+  assignAuditsToCut(auditIds: string[], cutId: string) {
     return Promise.all(
       auditIds.map((id) => this.auditRepo.update(id, { cut: { id: cutId } })),
     );
@@ -33,18 +33,18 @@ export class CutRepository {
     return this.cutRepo.find({ relations: ['employee', 'audits'] });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.cutRepo.findOne({
       where: { id },
       relations: ['employee', 'audits'],
     });
   }
 
-  updateCut(id: number, updateDto: Partial<Cut>) {
+  updateCut(id: string, updateDto: Partial<Cut>) {
     return this.cutRepo.update(id, updateDto).then(() => this.findOne(id));
   }
 
-  remove(cut: Cut) {
-    return this.cutRepo.remove(cut);
+  softDelete(id: string) {
+    return this.cutRepo.softDelete(id);
   }
 }

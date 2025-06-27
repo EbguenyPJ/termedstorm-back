@@ -28,7 +28,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 export class ShipmentsController {
   constructor(
     private readonly shipmentsService: ShipmentsService,
-    private readonly csvService: ShipmentsCsvService
+    private readonly csvService: ShipmentsCsvService,
   ) {}
 
   @Post()
@@ -42,20 +42,20 @@ export class ShipmentsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.shipmentsService.findOne(id);
   }
 
   @Put(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() dto: UpdateShipmentDto,
   ) {
     return this.shipmentsService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.shipmentsService.remove(id);
   }
 
@@ -67,7 +67,7 @@ export class ShipmentsController {
     @Query('code') code: string,
     @Query('from') from: string,
     @Query('to') to: string,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     const filePath = await this.csvService.createCsvFromDatabase(
       filename || 'embarques',
@@ -97,16 +97,6 @@ export class ShipmentsController {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
 // import {
 //   Body,
 //   Controller,
@@ -130,7 +120,7 @@ export class ShipmentsController {
 // import { diskStorage } from 'multer';
 // import { extname } from 'path';
 // import { UseGuards } from '@nestjs/common';
-// import { ApiBearerAuth } from '@nestjs/swagger'; 
+// import { ApiBearerAuth } from '@nestjs/swagger';
 // import { AuthGuard } from '../auth/guards/auth.guard';
 // @Controller('shipments')
 // export class ShipmentsController {
@@ -179,8 +169,6 @@ export class ShipmentsController {
 //   res.download(filePath, `${filename || 'embarques'}.csv`);
 // }
 
-
-
 // @Post('csv/upload')
 // @UseInterceptors(
 //   FileInterceptor('file', {
@@ -198,6 +186,5 @@ export class ShipmentsController {
 // ) {
 //   return this.csvService.loadCsvToDatabase(file);
 // }
-
 
 // }

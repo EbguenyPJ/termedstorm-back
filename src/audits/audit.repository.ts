@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Repository, IsNull } from 'typeorm';
-import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
+import { InjectTenantRepository } from '../common/typeorm-tenant-repository/tenant-repository.decorator';
 import { Audit } from './audit.entity';
-import { Order } from 'src/modules/orders/entities/order.entity';
+import { Order } from '../modules/orders/entities/order.entity';
 
 @Injectable()
 export class AuditRepository {
@@ -29,8 +29,8 @@ export class AuditRepository {
     for (const order of orders) {
       const paymentName = order.type_of_payment?.name ?? '';
 
-      if (paymentName === 'Efectivo')       cash     += +order.total_order;
-      else if (paymentName === 'Tarjeta')   card     += +order.total_order;
+      if (paymentName === 'Efectivo') cash += +order.total_order;
+      else if (paymentName === 'Tarjeta') card += +order.total_order;
       else if (paymentName === 'Transferencia') transfer += +order.total_order;
     }
 
@@ -58,15 +58,15 @@ export class AuditRepository {
     });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.auditRepo.findOne({ where: { id } });
   }
 
-  update(id: number, dto: Partial<Audit>) {
+  update(id: string, dto: Partial<Audit>) {
     return this.auditRepo.update(id, dto);
   }
 
-  softDelete(id: number) {
+  softDelete(id: string) {
     return this.auditRepo.softDelete(id);
   }
 }

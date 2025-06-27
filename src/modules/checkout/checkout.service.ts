@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Order } from 'src/modules/orders/entities/order.entity';
+import { Order } from '../../modules/orders/entities/order.entity';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Repository } from 'typeorm';
-import { transporter } from './mailer.config'; 
-import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
+import { transporter } from './mailer.config';
+import { InjectTenantRepository } from '../../common/typeorm-tenant-repository/tenant-repository.decorator';
 
 const PdfPrinter = require('pdfmake');
 @Injectable()
@@ -82,8 +82,9 @@ export class CheckoutService {
         { text: `Total: $${order.total_order}`, margin: [0, 10] },
         { text: 'Productos:', margin: [0, 10] },
         {
-          ul: order.details.map((item) =>
-            `${item.variant.product.name} x${item.total_amount_of_products} = $${item.subtotal_order}`,
+          ul: order.details.map(
+            (item) =>
+              `${item.variant.product.name} x${item.total_amount_of_products} = $${item.subtotal_order}`,
           ),
         },
       ],

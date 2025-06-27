@@ -31,19 +31,19 @@ export class AuditController {
 
   @Put(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateAuditDto,
   ) {
     return this.auditService.update(id, updateDto);
   }
 
   @Get(':id')
-  getOne(@Param('id', ParseIntPipe) id: number) {
+  getOne(@Param('id', ParseIntPipe) id: string) {
     return this.auditService.findOne(id);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.auditService.remove(id);
   }
 }

@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AuditRepository } from './audit.repository';
 import { CreateAuditDto } from './create-auditDto';
 import { UpdateAuditDto } from './update-auditDto';
-import { extractEmployeeIdFromToken } from 'src/modules/temp-entities/helpers/extract-empoyee-id.helper'; // opcional
-import { Employee } from 'src/modules/users/entities/employee.entity'; // 👈 Asegurate que este path sea correcto según tu estructura
+import { extractEmployeeIdFromToken } from '../modules/temp-entities/helpers/extract-empoyee-id.helper'; // opcional
+import { Employee } from '../modules/users/entities/employee.entity'; // 👈 Asegurate que este path sea correcto según tu estructura
 
 @Injectable()
 export class AuditService {
@@ -12,7 +12,8 @@ export class AuditService {
   async create(dto: CreateAuditDto, token?: string) {
     const pendingOrders = await this.repo.getPendingOrders();
 
-    const { cash, card, transfer } = this.repo.calculateSalesTotals(pendingOrders);
+    const { cash, card, transfer } =
+      this.repo.calculateSalesTotals(pendingOrders);
 
     const auditData = {
       description: dto.description,
@@ -35,18 +36,18 @@ export class AuditService {
     return this.repo.findAll();
   }
 
-  async update(id: number, dto: UpdateAuditDto) {
+  async update(id: string, dto: UpdateAuditDto) {
     await this.repo.update(id, dto);
     const updated = await this.repo.findOne(id);
     if (!updated) throw new NotFoundException(`Audit #${id} no encontrado`);
     return updated;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.repo.findOne(id);
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     await this.repo.softDelete(id);
     return { message: 'Audit eliminado correctamente' };
   }
