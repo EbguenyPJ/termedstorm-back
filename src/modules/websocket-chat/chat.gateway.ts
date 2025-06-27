@@ -11,6 +11,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { ChatService } from './tenant-aware-chat.service';
+import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 
 interface AuthenticatedSocket extends Socket {
   data: {
@@ -24,13 +26,17 @@ interface AuthenticatedSocket extends Socket {
     origin: '*',
   },
 })
+
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(ChatGateway.name);
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly configService: ConfigService, // NACHO
+  ) {}
 
   afterInit(server: Server) {
     this.logger.log('Iniciando chat👩‍💻');
@@ -38,6 +44,7 @@ export class ChatGateway
 
   async handleConnection(client: AuthenticatedSocket) {
     const tenantSlug = client.handshake.auth?.tenantSlug;
+
     if (!tenantSlug) {
       this.logger.error('Conexión rechazada: No se proporcionó tenantSlug.');
       client.disconnect(true);
@@ -52,11 +59,27 @@ export class ChatGateway
       client.disconnect(true);
       return;
     }
+    
+//NACHO
+    const cookies = client.handshake.headers.cookie;
+    const token = this.extractTokenFromCookie(cookies);
 
+  try {
+    const secret = this.configService.get<string>('JWT_SECRET') || 'jwtsecurity';
+    const payload = jwt.verify(token, secret) as { sub: string };
+
+    client.data.userId = payload.sub;
     client.data.tenantSlug = tenantSlug;
-    // client.data.userId = 'id-del-usuario-extraido-del-jwt'; // Lógica de autenticación
-    this.logger.log(`Usuario conectado: ${client.id} al db: ${tenantSlug}`);
+
+    this.logger.log(
+      `Usuario conectado: ${client.id} (userId: ${payload.sub}) al tenant: ${tenantSlug}`,
+    );
+  } catch (err) {
+    this.logger.error('Token inválido en conexión WebSocket.');
+    client.disconnect(true);
   }
+  }
+
 
   handleDisconnect(client: AuthenticatedSocket) {
     if (client.data.tenantSlug) {
@@ -73,6 +96,13 @@ export class ChatGateway
   private getTenantRoomName(tenantSlug: string, room: string): string {
     return `${tenantSlug}__${room}`;
   }
+
+  private extractTokenFromCookie(cookieHeader?: string): string {
+  if (!cookieHeader) return "";
+  const cookies = cookieHeader.split(";").map(c => c.trim());
+  const tokenCookie = cookies.find(c => c.startsWith("access_token="));
+  return tokenCookie?.split("=")[1] || "";
+}
 
   @SubscribeMessage('event_join')
   handleJoinRoom(
