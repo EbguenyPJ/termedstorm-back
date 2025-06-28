@@ -13,23 +13,32 @@ import { AuditService } from './audit.sevice';
 import { CreateAuditDto } from './create-auditDto';
 import { UpdateAuditDto } from './update-auditDto';
 import { Request } from 'express';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 
+@ApiTags('Auditorías')
+@ApiBearerAuth()
 @Controller('audits')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Obtener todas las auditorías' })
   getAll() {
     return this.auditService.findAll();
   }
 
   @Post()
+  @ApiOperation({ summary: 'Crear una auditoría' })
+  @ApiBody({ type: CreateAuditDto })
   create(@Body() dto: CreateAuditDto, @Req() req: Request) {
     const token = req.headers.authorization?.split(' ')[1]; // Bearer TOKEN
     return this.auditService.create(dto, token);
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Actualizar una auditoría por ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiBody({ type: UpdateAuditDto })
   update(
     @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateAuditDto,
@@ -38,12 +47,23 @@ export class AuditController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener una auditoría por ID' })
+  @ApiParam({ name: 'id', type: Number })
   getOne(@Param('id', ParseIntPipe) id: string) {
     return this.auditService.findOne(id);
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar una auditoría por ID' })
+  @ApiParam({ name: 'id', type: Number })
   remove(@Param('id', ParseIntPipe) id: string) {
     return this.auditService.remove(id);
   }
 }
+
+
+
+
+
+
+
