@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -17,6 +18,7 @@ import { Employee } from '../users/entities/employee.entity';
 import { Client } from '../users/entities/client.entity';
 import { TenantConnectionService } from '../../common/tenant-connection/tenant-connection.service';
 import { getTenantContext } from '../../common/context/tenant-context';
+import { In } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -61,14 +63,77 @@ export class AuthService {
   async registerEmployee(
     registerEmployeeDto: RegisterEmployeeDto,
   ): Promise<User> {
-    return this.registerUserWithRole(registerEmployeeDto, 'employee');
+    const { roles: roleIds, ...userDto } = registerEmployeeDto; // Separa los IDs de los roles del resto del DTO
+
+    return this.dataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(User);
+      const roleRepo = manager.getRepository(Role);
+      const employeeRepo = manager.getRepository(Employee);
+
+      // 1. Verificar si el email ya existe
+      const existingUser = await userRepo.findOneBy({ email: userDto.email });
+      if (existingUser) {
+        throw new ConflictException('Email already registered');
+      }
+
+      // 2. Verificar que todos los roles proporcionados existan
+      const existingRoles = await roleRepo.findBy({ id: In(roleIds) });
+      if (existingRoles.length !== roleIds.length) {
+        throw new BadRequestException('One or more roles are invalid');
+      }
+
+      // 3. Crear y guardar la entidad User
+      const hashedPassword = await bcrypt.hash(userDto.password, 10);
+      const newUser = userRepo.create({
+        ...userDto,
+        password: hashedPassword,
+      });
+
+      // 4. Crear la entidad Employee, asignando el nuevo usuario y los roles encontrados
+      // Gracias al @JoinTable en la entidad Employee, TypeORM manejará la tabla pivote employee_roles
+      const newEmployee = employeeRepo.create({
+        user: newUser, // Asigna el objeto User completo
+        roles: existingRoles, // Asigna el arreglo de entidades Role encontradas
+      });
+
+      // 5. Guardar el empleado. Gracias a `cascade: true` en la relación, el usuario se guardará automáticamente.
+      await employeeRepo.save(newEmployee);
+
+      // La contraseña ya está excluida por el decorador @Exclude() en la entidad User
+      return newUser;
+    });
   }
 
   async registerClient(registerClientDto: RegisterClientDto): Promise<User> {
-    return this.registerUserWithRole(registerClientDto, 'client');
-  }
+    return this.dataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(User);
+      const clientRepo = manager.getRepository(Client);
 
-  // --- 🔐 Google Logins ---
+      // Verificar si el email ya existe
+      const existingUser = await userRepo.findOneBy({
+        email: registerClientDto.email,
+      });
+      if (existingUser) {
+        throw new ConflictException('Email already registered');
+      }
+
+      // Crear y guardar la entidad User
+      const hashedPassword = await bcrypt.hash(registerClientDto.password, 10);
+      const newUser = userRepo.create({
+        ...registerClientDto,
+        password: hashedPassword,
+      });
+      
+      // Crear y guardar la entidad Client
+      const newClient = clientRepo.create({ user: newUser });
+      await clientRepo.save(newClient);
+
+      return newUser;
+    });
+  }
+  // #endregion
+
+  // #region Google Logins
   async validateAndLoginGoogleEmployee(googleUser: {
     email: string;
   }): Promise<string> {
