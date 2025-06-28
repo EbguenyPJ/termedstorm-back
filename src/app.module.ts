@@ -36,6 +36,7 @@ import { CancellationModule } from './modules/cancellation/cancellation.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { ChatModule } from './modules/websocket-chat/chat.module';
 import { ChatGateway } from './modules/websocket-chat/chat.gateway';import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 
 @Module({
@@ -87,6 +88,7 @@ import { ChatGateway } from './modules/websocket-chat/chat.gateway';import { Not
     CancellationModule,
     ShipmentsModule,
     ChatModule,
+    ScheduleModule.forRoot(),
     MasterDataModule,
   ],
   controllers: [],

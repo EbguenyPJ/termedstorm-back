@@ -9,7 +9,7 @@ export class MailerService {
     to: string,
     subject: string,
     template: string,
-    context: Record<string, any>
+    context: Record<string, any>,
   ) {
     await this.mailerService.sendMail({
       to,
@@ -17,5 +17,14 @@ export class MailerService {
       template,
       context,
     });
+  }
+
+  async sendLowStockNotification(userEmail: string, context: Record<string, any>) {
+    await this.sendMail(
+      userEmail,
+      'Low stock alert!',
+      'low-stock',
+      context,
+    );
   }
 }

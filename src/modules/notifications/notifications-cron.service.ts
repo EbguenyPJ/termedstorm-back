@@ -17,14 +17,17 @@ export class NotificationsCronService {
     @InjectRepository(VariantSize)
     private readonly variantSizeRepo: Repository<VariantSize>,
     @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>
+    private readonly orderRepository: Repository<Order>,
   ) {}
 
   @Cron('0 7 * * *')
   async notifyMembershipExpiring() {
-    const memberships = await this.membershipRepo.createQueryBuilder('membership')
+    const memberships = await this.membershipRepo
+      .createQueryBuilder('membership')
       .leftJoinAndSelect('membership.client', 'client')
-      .where("membership.expiration_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '3 day'")
+      .where(
+        "membership.expiration_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '3 day'",
+      )
       .getMany();
 
     for (const m of memberships) {
@@ -35,21 +38,29 @@ export class NotificationsCronService {
         client: m.client,
         sendEmail: true,
         emailTemplate: 'membership-expiring',
-        emailContext: { expirationDate: m.expiration_date },
+        emailContext: {
+          expirationDate: new Date(m.expiration_date).toLocaleDateString(
+            'es-CO',
+          ),
+        },
       });
     }
   }
 
   @Cron('0 8 * * *')
   async notifyLowStock() {
-    const variants = await this.variantSizeRepo.createQueryBuilder('vs')
+    const variants = await this.variantSizeRepo
+      .createQueryBuilder('vs')
       .leftJoinAndSelect('vs.variantProduct', 'vp')
       .leftJoinAndSelect('vp.product', 'p')
       .leftJoinAndSelect('p.employee', 'employee')
       .where('vs.stock < 5')
       .getMany();
 
-    const grouped = new Map<string, { employee: any, variants: VariantSize[] }>();
+    const grouped = new Map<
+      string,
+      { employee: any; variants: VariantSize[] }
+    >();
 
     for (const v of variants) {
       const emp = v.variantProduct.product.employee;
@@ -60,20 +71,47 @@ export class NotificationsCronService {
     }
 
     for (const { employee, variants } of grouped.values()) {
-      await this.notificationsService.sendNotification({
-        type: NotificationType.PRODUCT_LOW_STOCK,
-        title: 'Productos con stock bajo',
-        message: `Tienes ${variants.length} productos con stock bajo`,
-        employee,
-        sendEmail: true,
-        emailTemplate: 'stock-low',
-        emailContext: {
-          products: variants.map(v => ({
-            name: v.variantProduct.product.name,
-            stock: v.stock,
-          })),
-        },
-      });
+      if (!employee?.email) continue;
+
+      try {
+        if (variants.length === 1) {
+          const variant = variants[0];
+          await this.notificationsService.sendNotification({
+            type: NotificationType.PRODUCT_LOW_STOCK,
+            title: 'Producto con stock bajo',
+            message: `El producto "${variant.variantProduct.product.name}" tiene poco stock.`,
+            employee,
+            sendEmail: true,
+            emailTemplate: 'stock-low-single',
+            emailContext: {
+              productName: variant.variantProduct.product.name,
+              stockLeft: variant.stock,
+              productUrl: `https://nivo.com/products/${variant.variantProduct.product.slug}`,
+              productImage: variant.variantProduct.image,
+            },
+          });
+        } else {
+          await this.notificationsService.sendNotification({
+            type: NotificationType.PRODUCT_LOW_STOCK,
+            title: 'Productos con stock bajo',
+            message: `Tienes ${variants.length} productos con stock bajo.`,
+            employee,
+            sendEmail: true,
+            emailTemplate: 'stock-low',
+            emailContext: {
+              products: variants.map((v) => ({
+                name: v.variantProduct.product.name,
+                stock: v.stock,
+              })),
+            },
+          });
+        }
+      } catch (error) {
+        console.error(
+          `Error enviando notificación de stock bajo a ${employee.email}:`,
+          error.message,
+        );
+      }
     }
   }
 

@@ -9,6 +9,8 @@ import { join } from 'path';
 import { Membership } from '../subscriptions/membership/entities/membership.entity';
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
 import { Order } from '../orders/entities/order.entity';
+import { NotificationsTestController } from './notifications.controller';
+import { MailerService } from './mailer/mailer.service';
 
 @Module({
   imports: [
@@ -31,7 +33,8 @@ import { Order } from '../orders/entities/order.entity';
       },
     }),
   ],
-  providers: [NotificationsService, NotificationsCronService],
+  providers: [NotificationsService, NotificationsCronService, MailerService],
   exports: [NotificationsService],
+  controllers: [NotificationsTestController]
 })
 export class NotificationsModule {}

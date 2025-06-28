@@ -46,31 +46,31 @@ export class ProductService {
     await queryRunner.startTransaction();
 
     try {
-      const { variants, ...productData } = createDto;
+      const { variants, ...updateDto } = createDto;
 
       const existing = await queryRunner.manager.findOne(Product, {
-        where: [{ code: productData.code }, { name: productData.name }],
+        where: [{ code: updateDto.code }, { name: updateDto.name }],
       });
 
       if (existing) {
         throw new BadRequestException(
           `Product already exists with ${
-            existing.code === productData.code ? 'code' : 'name'
-          }: ${existing.code === productData.code ? productData.code : productData.name}`,
+            existing.code === updateDto.code ? 'code' : 'name'
+          }: ${existing.code === updateDto.code ? updateDto.code : updateDto.name}`,
         );
       }
 
       const category = await queryRunner.manager.findOneBy(Category, {
-        id: productData.category_id,
+        id: updateDto.category_id,
       });
       const subCategory = await queryRunner.manager.findOneBy(SubCategory, {
-        id: productData.sub_category_id,
+        id: updateDto.sub_category_id,
       });
       const brand = await queryRunner.manager.findOneBy(Brand, {
-        id: productData.brand_id,
+        id: updateDto.brand_id,
       });
       const employee = await queryRunner.manager.findOneBy(Employee, {
-        id: productData.employee_id,
+        id: updateDto.employee_id,
       });
 
       if (!category || !subCategory || !brand) {
@@ -86,7 +86,7 @@ export class ProductService {
         );
       }
 
-      let slug = slugify(productData.name); // NACHO
+      let slug = slugify(updateDto.name); // NACHO
       const slugExists = await queryRunner.manager.findOne(Product, {
         where: { slug },
       });
@@ -95,7 +95,7 @@ export class ProductService {
       }
 
       const product = queryRunner.manager.create(Product, {
-        ...productData,
+        ...updateDto,
         slug, // NACHO
       });
       const savedProduct = await queryRunner.manager.save(product);
@@ -129,8 +129,10 @@ export class ProductService {
               );
             }
 
-            if (vs.stock <= 0) {
-              throw new BadRequestException('Stock must be greater than 0');
+            if (vs.stock <= 0 || vs.stock > 10000) {
+              throw new BadRequestException(
+                'Stock must be between 1 and 10,000 units',
+              );
             }
 
             const variantSize = queryRunner.manager.create(VariantSize, {
@@ -202,7 +204,7 @@ export class ProductService {
 
   async update(
     id: string,
-    productData: UpdateProductDto,
+    updateDto: UpdateProductDto,
   ): Promise<{ message: string; updatedProduct: Product }> {
     const product = await this.productRepository.findOneBy({ id });
 
@@ -210,21 +212,35 @@ export class ProductService {
       throw new NotFoundException(`Product with id ${id} not found`);
     }
 
-    const existing = await this.productRepository.findOne({
-      where: [{ code: productData.code }, { name: productData.name }],
-    });
+    if (updateDto.name && updateDto.name !== product.name) {
+      const nameExists = await this.productRepository.findOne({
+        where: { name: updateDto.name },
+      });
 
-    if (existing) {
-      throw new BadRequestException(
-        `Product already exists with ${
-          existing.code === productData.code ? 'code' : 'name'
-        }: ${existing.code === productData.code ? productData.code : productData.name}`,
-      );
+      if (nameExists && nameExists.id !== id) {
+        throw new BadRequestException(
+          `Product name "${updateDto.name}" already exists`,
+        );
+      }
+
+      updateDto.slug = slugify(updateDto.name);
+    }
+
+    if (updateDto.code && updateDto.code !== product.code) {
+      const codeExists = await this.productRepository.findOne({
+        where: { code: updateDto.code },
+      });
+
+      if (codeExists && codeExists.id !== id) {
+        throw new BadRequestException(
+          `Product code "${updateDto.code}" already exists`,
+        );
+      }
     }
 
     const updatedProduct = await this.productRepository.save({
       ...product,
-      ...productData,
+      ...updateDto,
     });
 
     return {

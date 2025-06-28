@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
-import { MailerService } from '@nestjs-modules/mailer';
+import { MailerService } from './mailer/mailer.service';
 import { NotificationType } from './types/notification-type.enum';
 import { Client } from 'src/modules/users/entities/client.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
 import { Order } from '../orders/entities/order.entity';
+import { Product } from '../products/entities/product.entity';
+import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
+import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
 
 @Injectable()
 export class NotificationsService {
@@ -41,19 +44,29 @@ export class NotificationsService {
       const to = options.client?.user?.email || options.employee?.user?.email;
       const name = options.client?.user?.client || options.employee?.user?.client;
 
-      await this.mailerService.sendMail({
-        to,
-        subject: options.title,
-        template: options.emailTemplate,
-        context: {
+      await this.mailerService.sendMail(
+        to? to : '',
+        options.title,
+        options.emailTemplate,
+        {
           ...options.emailContext,
           name,
-        },
-      });
+        }
+      );
     }
 
     return notification;
   }
+
+  async notifyLowStockForProduct(product: Product, variants: ProductVariant, variantSize: VariantSize) {
+  await this.mailerService.sendLowStockNotification(product.employee.email, {
+    productName: product.name,
+    stockLeft: variantSize.stock,
+    productUrl: `https://nivo.com/products/${product.slug}`,
+    productImage: variants.image,
+  });
+}
+
 
 //   async sendPaymentSuccessEmail(order: Order) {
 //   if (!order.client || !order.client.user?.email) {
