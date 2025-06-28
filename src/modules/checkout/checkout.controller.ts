@@ -16,30 +16,35 @@ export class CheckoutController {
   }
 
   @ApiOperation({ summary: 'Enviar ticket de prueba (mock)' })
-  @Post('send-test')
-  sendTestEmail() {
-    const mockOrder: any = {
-      folio: 'F123456',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().split(' ')[0],
-      totalOrder: 2499.99,
-      client: { email: 'tu-correo@gmail.com' },
-      details: [
-        {
+@Post('send-test')
+sendTestEmail() {
+  const mockOrder: any = {
+    folio: 'F123456',
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().split(' ')[0],
+    totalOrder: 2499.99,
+    client: { user: { email: 'dreamteeam20@gmail.com' } },
+    details: [
+      {
+        variant: {
           product: { name: 'Zapatillas Nike Air Max' },
-          totalAmountOfProducts: 1,
-          subtotalOrder: 1499.99,
         },
-        {
+        total_amount_of_products: 1,
+        subtotal_order: 1499.99,
+      },
+      {
+        variant: {
           product: { name: 'Buzo Adidas Essentials' },
-          totalAmountOfProducts: 1,
-          subtotalOrder: 1000.0,
         },
-      ],
-    };
+        total_amount_of_products: 1,
+        subtotal_order: 1000.0,
+      },
+    ],
+  };
 
-    return this.checkoutService.sendConfirmationEmail(mockOrder);
-  }
+  return this.checkoutService.sendMockEmail(mockOrder);
+}
+
 
   @ApiOperation({ summary: 'Visualizar ticket de compra en PDF' })
   @ApiParam({ name: 'id', description: 'ID de la orden' })
