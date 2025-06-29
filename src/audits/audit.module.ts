@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AuditService } from './audit.sevice';
+import { AuditService } from './audit.service';
 import { AuditController } from './audit.controller';
 import { AuditRepository } from './audit.repository';
 import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant-repository.provider';

@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AuditRepository } from './audit.repository';
 import { CreateAuditDto } from './create-auditDto';
 import { UpdateAuditDto } from './update-auditDto';
-import { extractEmployeeIdFromToken } from '../modules/temp-entities/helpers/extract-empoyee-id.helper'; // opcional
-import { Employee } from '../modules/users/entities/employee.entity'; // 👈 Asegurate que este path sea correcto según tu estructura
+import { extractEmployeeIdFromToken } from '../modules/temp-entities/helpers/extract-empoyee-id.helper'; 
+import { Employee } from '../modules/users/entities/employee.entity'; 
 
 @Injectable()
 export class AuditService {
@@ -17,13 +17,13 @@ export class AuditService {
 
     const auditData = {
       description: dto.description,
-      totalCash: dto.totalCash,
+      totalCash: cash + card,
       totalCashSales: cash,
       totalCardSales: card,
       saleCount: pendingOrders.length,
       employee: {
-        id: token ? extractEmployeeIdFromToken(token) : dto.employeeId,
-      } as Employee, 
+        id: extractEmployeeIdFromToken(token || ''),
+      },
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0],
     };

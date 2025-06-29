@@ -53,9 +53,11 @@ export class Audit {
   @Column({ name: 't_hora_arqueo', type: 'time' })
   time: string;
 
-  @ManyToOne(() => Employee, { eager: true })
-  @JoinColumn({ name: 'id_empleado' })
-  employee: Employee;
+  @Column({ name: 'id_empleado', type: 'int' })
+  employeeId: number;
+  // @ManyToOne(() => Employee, { eager: true })
+  // @JoinColumn({ name: 'id_empleado' })
+  // employee: Employee | string;
 
   @ManyToOne(() => Cut, (cut) => cut.audits, { nullable: true })
   @JoinColumn({ name: 'id_corte' })

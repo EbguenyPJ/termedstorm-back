@@ -9,7 +9,7 @@ import {
   Delete,
   Req,
 } from '@nestjs/common';
-import { AuditService } from './audit.sevice';
+import { AuditService } from './audit.service';
 import { CreateAuditDto } from './create-auditDto';
 import { UpdateAuditDto } from './update-auditDto';
 import { Request } from 'express';
@@ -31,7 +31,7 @@ export class AuditController {
   @ApiOperation({ summary: 'Crear una auditoría' })
   @ApiBody({ type: CreateAuditDto })
   create(@Body() dto: CreateAuditDto, @Req() req: Request) {
-    const token = req.headers.authorization?.split(' ')[1]; // Bearer TOKEN
+    const token = req.headers.authorization?.split(' ')[1]; 
     return this.auditService.create(dto, token);
   }
 
