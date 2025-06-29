@@ -17,24 +17,22 @@ export class AuditRepository {
   async getPendingOrders(): Promise<Order[]> {
     return this.orderRepo.find({
       where: { audit: IsNull() },
-      relations: ['type_of_payment'], // relación correcta según tu entity
+      //relations: ['type_of_payment'], 
     });
   }
 
   calculateSalesTotals(orders: Order[]) {
     let cash = 0;
     let card = 0;
-    let transfer = 0;
 
     for (const order of orders) {
       const paymentName = order.type_of_payment?.name ?? '';
 
       if (paymentName === 'Efectivo') cash += +order.total_order;
       else if (paymentName === 'Tarjeta') card += +order.total_order;
-      else if (paymentName === 'Transferencia') transfer += +order.total_order;
     }
 
-    return { cash, card, transfer };
+    return { cash, card };
   }
 
   async createAuditWithOrders(

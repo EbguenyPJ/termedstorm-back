@@ -32,13 +32,6 @@ export class Audit {
   })
   total_card_sales: number;
 
-  @Column({
-    name: 'total_ventas_transferencia',
-    type: 'decimal',
-    precision: 10,
-    scale: 2,
-  })
-  total_transfer_sales: number;
 
   @Column({ name: 'n_cantidad_ventas', type: 'int' })
   sale_count: number;
