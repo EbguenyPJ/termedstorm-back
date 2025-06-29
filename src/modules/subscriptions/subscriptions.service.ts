@@ -32,8 +32,8 @@ export class SubscriptionsService {
       customerName,
     );
 
-    const successUrl = 'http://AcaPonerPagina/pago-exitoso';
-    const cancelUrl = 'http://AcaPonerPagina/pago-cancelado';
+    const successUrl = 'http://localhost:4000/payment-success';
+    const cancelUrl = 'http://localhost:4000/payment-cancelled';
 
     const checkoutSession =
       await this.stripeService.createSubscriptionCheckoutSession(

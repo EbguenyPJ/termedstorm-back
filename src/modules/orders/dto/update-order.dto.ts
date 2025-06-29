@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { OrderStatus } from '../entities/order.entity';
-import { PaymentMethod } from '../payment-method.enum'; // <-- agregar esto
 
 export class UpdateOrderDto {
   @ApiProperty({
@@ -14,17 +13,6 @@ export class UpdateOrderDto {
   })
   @IsOptional()
   status?: OrderStatus;
-
-  @ApiProperty({
-    example: PaymentMethod.Efectivo,
-    enum: PaymentMethod,
-    description: 'Nuevo método de pago',
-  })
-  @IsEnum(PaymentMethod, {
-    message: `El método de pago debe ser uno de los siguientes: ${Object.values(PaymentMethod).join(', ')}`,
-  })
-  @IsOptional()
-  payment_method?: PaymentMethod;
 }
 
 

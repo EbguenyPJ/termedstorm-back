@@ -14,7 +14,7 @@ import {
 import { OrderDetail } from './orderDetail.entity';
 import { Audit } from 'src/audits/audit.entity';
 import { Cancellation } from 'src/modules/cancellation/entities/cancellation.entity';
-import { PaymentMethod } from '../payment-method.enum'; 
+import { PaymentMethod } from '../payment-method.enum';
 
 export enum OrderStatus {
   COMPLETED = 'Completada',

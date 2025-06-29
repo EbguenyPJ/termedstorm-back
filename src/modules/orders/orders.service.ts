@@ -80,7 +80,7 @@ export class OrdersService {
           orderProducts: dto.products,
           dbVariants,
           totalOrder,
-          paymentMethod: dto.payment_method as PaymentMethod,
+          paymentMethod: dto.payment_method,
         },
         entityManager,
       ),
