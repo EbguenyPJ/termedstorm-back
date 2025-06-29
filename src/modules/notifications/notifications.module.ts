@@ -11,16 +11,17 @@ import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
 import { Order } from '../orders/entities/order.entity';
 import { NotificationsTestController } from './notifications.controller';
 import { MailerService } from './mailer/mailer.service';
+import { CompanySubscription } from 'src/master_data/company_subscription/entities/company-subscription.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Notification, Membership, VariantSize, Order]),
+    TypeOrmModule.forFeature([Notification, Membership, VariantSize, Order, CompanySubscription]),
     MailerModule.forRoot({
       transport: {
         service: 'gmail',
         auth: {
-          user: 'dreamteeam20@gmail.com',
-          pass: 'TU_APP_PASSWORD',
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
         },
       },
       defaults: {
@@ -34,7 +35,7 @@ import { MailerService } from './mailer/mailer.service';
     }),
   ],
   providers: [NotificationsService, NotificationsCronService, MailerService],
-  exports: [NotificationsService],
-  controllers: [NotificationsTestController]
+  exports: [NotificationsService, MailerService],
+  controllers: [NotificationsTestController],
 })
 export class NotificationsModule {}

@@ -21,6 +21,7 @@ import { CreateCancellationDto } from '../cancellation/dto/create-cancellation.d
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
 import { InjectTenantRepository } from '../../common/typeorm-tenant-repository/tenant-repository.decorator';
 import { getTenantContext } from '../../common/context/tenant-context';
+import { NotificationsService } from '../notifications/notifications.service'; //Steven
 
 @Injectable() // <-- Añadir esto explícitamente
 export class OrdersService {
@@ -32,6 +33,7 @@ export class OrdersService {
     private readonly stripeService: StripeService,
     private readonly productService: ProductService,
     private readonly cancellationService: CancellationService,
+    private readonly notificationsService: NotificationsService,
   ) {
     this.logger = new Logger(OrdersService.name);
     this.instanceId = Math.random().toString(36).substring(2, 9); // <-- ASIGNAMOS UN ID ÚNICO
@@ -284,6 +286,22 @@ export class OrdersService {
         'stock',
         item.quantity,
       );
+
+      //Steven
+      const updatedVariantSize = await entityManager.findOne(VariantSize, {
+        where: { id: variantSize.id },
+        relations: [
+          'variantProduct',
+          'variantProduct.product',
+          'variantProduct.product.employee',
+          'variantProduct.product.employee.user',
+        ],
+      });
+
+      if (updatedVariantSize) {
+        await this.notificationsService.notifyIfLowStock(updatedVariantSize);
+      }
+    // Steven
 
       variantSizeRecords.push(variantSize);
     }

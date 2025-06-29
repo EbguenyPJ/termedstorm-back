@@ -6,6 +6,7 @@ import { MailerService } from './mailer/mailer.service';
 import { NotificationType } from './types/notification-type.enum';
 import { Client } from 'src/modules/users/entities/client.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
+import { Customer } from 'src/master_data/customer/entities/customer.entity';
 import { Order } from '../orders/entities/order.entity';
 import { Product } from '../products/entities/product.entity';
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
@@ -25,6 +26,7 @@ export class NotificationsService {
     message: string;
     client?: Client;
     employee?: Employee;
+    customer?: Customer;
     sendEmail?: boolean;
     emailTemplate?: string;
     emailContext?: Record<string, any>;
@@ -35,79 +37,96 @@ export class NotificationsService {
       message: options.message,
       client: options.client,
       employee: options.employee,
+      customer: options.customer,
       sent_by_email: !!options.sendEmail,
     });
 
     await this.notificationRepository.save(notification);
 
     if (options.sendEmail && options.emailTemplate) {
-      const to = options.client?.user?.email || options.employee?.user?.email;
-      const name = options.client?.user?.client || options.employee?.user?.client;
+      const to =
+        options.client?.user?.email ||
+        options.employee?.user?.email ||
+        options.customer?.email;
 
-      await this.mailerService.sendMail(
-        to? to : '',
-        options.title,
-        options.emailTemplate,
-        {
-          ...options.emailContext,
-          name,
-        }
-      );
+      const name =
+        options.client?.user?.first_name ||
+        options.employee?.user?.first_name ||
+        options.customer?.name ||
+        'Usuario';
+
+      if (to) {
+        await this.mailerService.sendMail(
+          to,
+          options.title,
+          options.emailTemplate,
+          {
+            ...options.emailContext,
+            name,
+          }
+        );
+      } else {
+        console.warn('No se pudo enviar email: destinatario no definido');
+      }
     }
 
     return notification;
   }
 
-  async notifyLowStockForProduct(product: Product, variants: ProductVariant, variantSize: VariantSize) {
-  await this.mailerService.sendLowStockNotification(product.employee.email, {
-    productName: product.name,
-    stockLeft: variantSize.stock,
-    productUrl: `https://nivo.com/products/${product.slug}`,
-    productImage: variants.image,
-  });
+  // Para un solo producto
+  async notifyIfLowStock(variantSize: VariantSize) {
+    if (variantSize.stock >= 5) return;
+
+    const product = variantSize.variantProduct?.product;
+    const employee = product?.employee;
+
+    if (!product || !employee?.user?.email) return;
+
+    await this.sendNotification({
+      type: NotificationType.PRODUCT_LOW_STOCK,
+      title: 'Producto con stock bajo',
+      message: `El producto "${product.name}" tiene poco stock.`,
+      employee,
+      sendEmail: true,
+      emailTemplate: 'stock-low-single',
+      emailContext: {
+        productName: product.name,
+        stockLeft: variantSize.stock,
+        productUrl: `https://nivo.com/products/${product.slug}`,
+        productImage: variantSize.variantProduct.image?.[0] || '',
+      },
+    });
+  }
+
+  // Para varios productos (usado por el CRON)
+  async notifyLowStockMultiple(variants: VariantSize[]) {
+    const grouped = new Map<string, { employee: Employee; variants: VariantSize[] }>();
+
+    for (const v of variants) {
+      const emp = v.variantProduct.product.employee;
+      if (!emp?.user?.email) continue;
+
+      if (!grouped.has(emp.id)) {
+        grouped.set(emp.id, { employee: emp, variants: [] });
+      }
+      grouped.get(emp.id)?.variants.push(v);
+    }
+
+    for (const { employee, variants } of grouped.values()) {
+      await this.sendNotification({
+        type: NotificationType.PRODUCT_LOW_STOCK,
+        title: 'Productos con stock bajo',
+        message: `Tienes ${variants.length} productos con stock bajo.`,
+        employee,
+        sendEmail: true,
+        emailTemplate: 'stock-low-multiple',
+        emailContext: {
+          products: variants.map((v) => ({
+            name: v.variantProduct.product.name,
+            stock: v.stock,
+          })),
+        },
+      });
+    }
+  }
 }
-
-
-//   async sendPaymentSuccessEmail(order: Order) {
-//   if (!order.client || !order.client.user?.email) {
-//     this.logger.warn(`No se pudo enviar confirmación de pago: cliente sin email.`);
-//     return;
-//   }
-
-//   const email = order.client.user.email;
-//   const name = order.client.user.client ?? 'Cliente';
-
-//   const products = order.details.map((d) => ({
-//     name: d.variant.product.name,
-//     variant: d.variant.description,
-//     quantity: d.total_amount_of_products,
-//     price: d.price,
-//   }));
-
-//   await this.mailerService.sendMail({
-//     to: email,
-//     subject: 'Pago recibido - DreamTeam POS',
-//     template: 'payment-success',
-//     context: {
-//       name,
-//       products,
-//       total: order.total_order.toFixed(2),
-//       date: order.date,
-//     },
-//   });
-
-//   await this.notificationRepository.save(
-//     this.notificationRepository.create({
-//       type: 'payment-success',
-//       client: order.client,
-//       data: {
-//         total: order.total_order,
-//         orderId: order.id,
-//         products,
-//         date: order.date,
-//       },
-//     }),
-//   );
-// }
-}
-

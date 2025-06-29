@@ -6,9 +6,10 @@ import {
   Logger,
   BadRequestException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
 
 import { RegisterEmployeeDto } from './dto/register-employee.dto';
 import { RegisterClientDto } from './dto/register-client.dto';
@@ -16,37 +17,30 @@ import { LoginDto } from './dto/login.dto';
 import { User } from '../users/entities/user.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { Client } from '../users/entities/client.entity';
-import { TenantConnectionService } from '../../common/tenant-connection/tenant-connection.service';
-import { getTenantContext } from '../../common/context/tenant-context';
+import { Role } from '../roles/entities/role.entity';
+import { stringify } from 'querystring';
 import { In } from 'typeorm';
+import { MailerService } from '../notifications/mailer/mailer.service'; //Steven
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Employee)
+    private readonly employeeRepository: Repository<Employee>,
+    @InjectRepository(Client)
+    private readonly clientRepository: Repository<Client>,
+    private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
-    private readonly tenantConnectionService: TenantConnectionService,
+    private readonly mailerService: MailerService, //Steven
   ) {}
 
-  // --- 🔧 Métodos utilitarios para obtener repositorios dinámicos ---
-  private getDataSource() {
-    return this.tenantConnectionService.getTenantDataSourceFromContext();
-  }
+  //& --- LÓGICAS PÚBLICAS ---
 
-  private getUserRepository(): Repository<User> {
-    return this.getDataSource().getRepository(User);
-  }
-
-  private getEmployeeRepository(): Repository<Employee> {
-    return this.getDataSource().getRepository(Employee);
-  }
-
-  private getClientRepository(): Repository<Client> {
-    return this.getDataSource().getRepository(Client);
-  }
-
-  // --- 🔐 Login ---
+  // #region Logins
   async employeeLogin(loginDto: LoginDto): Promise<string> {
     const user = await this.validateUserPassword(loginDto, 'employee');
     const payload = this.createJwtPayload(user);
@@ -58,8 +52,9 @@ export class AuthService {
     const payload = this.createJwtPayload(user, 'CLIENT');
     return this.jwtService.sign(payload);
   }
+  // #endregion
 
-  // --- 📝 Registro ---
+  // #region Registrations
   async registerEmployee(
     registerEmployeeDto: RegisterEmployeeDto,
   ): Promise<User> {
@@ -99,6 +94,8 @@ export class AuthService {
       // 5. Guardar el empleado. Gracias a `cascade: true` en la relación, el usuario se guardará automáticamente.
       await employeeRepo.save(newEmployee);
 
+      await this.mailerService.sendWelcomeEmailToEmployee(newEmployee); //Steven
+
       // La contraseña ya está excluida por el decorador @Exclude() en la entidad User
       return newUser;
     });
@@ -123,10 +120,12 @@ export class AuthService {
         ...registerClientDto,
         password: hashedPassword,
       });
-      
+
       // Crear y guardar la entidad Client
       const newClient = clientRepo.create({ user: newUser });
       await clientRepo.save(newClient);
+
+      await this.mailerService.sendWelcomeEmailToClient(newClient); //Steven
 
       return newUser;
     });
@@ -137,7 +136,7 @@ export class AuthService {
   async validateAndLoginGoogleEmployee(googleUser: {
     email: string;
   }): Promise<string> {
-    const user = await this.getUserRepository().findOne({
+    const user = await this.userRepository.findOne({
       where: { email: googleUser.email },
       relations: { employee: { roles: true } },
     });
@@ -148,6 +147,8 @@ export class AuthService {
       );
     }
 
+      await this.mailerService.sendLoginNotificationToEmployee(user.employee); //Steven
+
     const payload = this.createJwtPayload(user);
     return this.jwtService.sign(payload);
   }
@@ -157,13 +158,8 @@ export class AuthService {
     firstName: string;
     lastName: string;
   }): Promise<string> {
-    const dataSource = this.getDataSource();
-
-    return dataSource.transaction(async (manager) => {
-      const userRepo = manager.getRepository(User);
-      const clientRepo = manager.getRepository(Client);
-
-      let user = await userRepo.findOne({
+    return this.dataSource.transaction(async (manager) => {
+      let user = await manager.findOne(User, {
         where: { email: googleUser.email },
         relations: { client: true },
       });
@@ -178,16 +174,22 @@ export class AuthService {
         this.logger.log(
           `User not found for ${googleUser.email}. Creating new client user.`,
         );
+        const userRepo = manager.getRepository(User);
+        const clientRepo = manager.getRepository(Client);
+
         const password = await bcrypt.hash(Math.random().toString(36), 10);
-        const newUser = userRepo.create({
+        const newUserEntity = userRepo.create({
           email: googleUser.email,
           first_name: googleUser.firstName,
           last_name: googleUser.lastName,
-          password,
+          password: password,
         });
 
-        const newClient = clientRepo.create({ user: newUser });
+        // CORRECCIÓN: Se crea el cliente, se le asigna el usuario y se guarda. Cascade se encarga del resto.
+        const newClient = clientRepo.create({ user: newUserEntity });
         const savedClient = await clientRepo.save(newClient);
+
+        // Asignamos el usuario recién creado (con su ID) para generar el token.
         user = savedClient.user;
       }
 
@@ -196,12 +198,15 @@ export class AuthService {
           'User could not be created or retrieved.',
         );
 
+        await this.mailerService.sendLoginNotificationToClient(user.client); //Steven
+
       const payload = this.createJwtPayload(user, 'CLIENT');
       return this.jwtService.sign(payload);
     });
   }
+  // #endregion
 
-  // --- 🔒 Métodos privados ---
+  // --- MÉTODOS PRIVADOS REFACTORIZADOS ---
 
   private async validateUserPassword(
     loginDto: LoginDto,
@@ -214,7 +219,7 @@ export class AuthService {
         ? { employee: { roles: true } }
         : { client: true };
 
-    const user = await this.getUserRepository().findOne({
+    const user = await this.userRepository.findOne({
       where: { email },
       relations,
     });
@@ -232,36 +237,28 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    //Steven
+    if (userType === 'employee') {
+    await this.mailerService.sendLoginNotificationToEmployee(user.employee);
+  } else {
+    await this.mailerService.sendLoginNotificationToClient(user.client);
+  } //Steven
+
     return user;
   }
 
   private createJwtPayload(
     user: User,
     fixedRole?: 'CLIENT',
-  ): {
-    sub: string;
-    email: string;
-    name: string;
-    roles: string[];
-    customerId: string;
-  } {
+  ): { sub: string; email: string; name: string; roles: string[] } {
     const roles = fixedRole
       ? [fixedRole]
       : user.employee.roles.map((role) => role.name);
-
-    const customerId = getTenantContext()?.customerId;
-    if (!customerId) {
-      throw new InternalServerErrorException(
-        'No customerId in tenant context.',
-      );
-    }
-
     return {
       sub: user.id,
       email: user.email,
       name: `${user.first_name} ${user.last_name}`,
       roles,
-      customerId, // 💡 Muy importante para middleware en próximas peticiones
     };
   }
 
@@ -269,9 +266,7 @@ export class AuthService {
     dto: RegisterEmployeeDto | RegisterClientDto,
     role: 'employee' | 'client',
   ): Promise<User> {
-    const dataSource = this.getDataSource();
-
-    return dataSource.transaction(async (manager) => {
+    return this.dataSource.transaction(async (manager) => {
       const userRepo = manager.getRepository(User);
       const existingUser = await userRepo.findOneBy({ email: dto.email });
 
@@ -280,7 +275,10 @@ export class AuthService {
       }
 
       const hashedPassword = await bcrypt.hash(dto.password, 10);
-      const newUser = userRepo.create({ ...dto, password: hashedPassword });
+      const newUser = userRepo.create({
+        ...dto,
+        password: hashedPassword,
+      });
 
       if (role === 'employee') {
         const employeeRepo = manager.getRepository(Employee);
@@ -296,219 +294,3 @@ export class AuthService {
     });
   }
 }
-
-// import {
-//   Injectable,
-//   ConflictException,
-//   UnauthorizedException,
-//   InternalServerErrorException,
-//   Logger,
-// } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { DataSource, EntityManager, Repository } from 'typeorm';
-// import { JwtService } from '@nestjs/jwt';
-// import * as bcrypt from 'bcrypt';
-
-// import { RegisterEmployeeDto } from './dto/register-employee.dto';
-// import { RegisterClientDto } from './dto/register-client.dto';
-// import { LoginDto } from './dto/login.dto';
-// import { User } from '../users/entities/user.entity';
-// import { Employee } from '../users/entities/employee.entity';
-// import { Client } from '../users/entities/client.entity';
-// import { Role } from '../roles/entities/role.entity';
-// import { stringify } from 'querystring';
-
-// @Injectable()
-// export class AuthService {
-//   private readonly logger = new Logger(AuthService.name);
-
-//   constructor(
-//     @InjectRepository(User)
-//     private readonly userRepository: Repository<User>,
-//     @InjectRepository(Employee)
-//     private readonly employeeRepository: Repository<Employee>,
-//     @InjectRepository(Client)
-//     private readonly clientRepository: Repository<Client>,
-//     private readonly dataSource: DataSource,
-//     private readonly jwtService: JwtService,
-//   ) {}
-
-//   //& --- LÓGICAS PÚBLICAS ---
-
-//   // #region Logins
-//   async employeeLogin(loginDto: LoginDto): Promise<string> {
-//     const user = await this.validateUserPassword(loginDto, 'employee');
-//     const payload = this.createJwtPayload(user);
-//     return this.jwtService.sign(payload);
-//   }
-
-//   async clientLogin(loginDto: LoginDto): Promise<string> {
-//     const user = await this.validateUserPassword(loginDto, 'client');
-//     const payload = this.createJwtPayload(user, 'CLIENT');
-//     return this.jwtService.sign(payload);
-//   }
-//   // #endregion
-
-//   // #region Registrations
-//   async registerEmployee(
-//     registerEmployeeDto: RegisterEmployeeDto,
-//   ): Promise<User> {
-//     return this.registerUserWithRole(registerEmployeeDto, 'employee');
-//   }
-
-//   async registerClient(registerClientDto: RegisterClientDto): Promise<User> {
-//     return this.registerUserWithRole(registerClientDto, 'client');
-//   }
-//   // #endregion
-
-//   // #region Google Logins
-//   async validateAndLoginGoogleEmployee(googleUser: {
-//     email: string;
-//   }): Promise<string> {
-//     const user = await this.userRepository.findOne({
-//       where: { email: googleUser.email },
-//       relations: { employee: { roles: true } },
-//     });
-
-//     if (!user || !user.employee) {
-//       throw new UnauthorizedException(
-//         'This Google account is not associated with a registered employee.',
-//       );
-//     }
-
-//     const payload = this.createJwtPayload(user);
-//     return this.jwtService.sign(payload);
-//   }
-
-//   async validateAndLoginOrCreateClient(googleUser: {
-//     email: string;
-//     firstName: string;
-//     lastName: string;
-//   }): Promise<string> {
-//     return this.dataSource.transaction(async (manager) => {
-//       let user = await manager.findOne(User, {
-//         where: { email: googleUser.email },
-//         relations: { client: true },
-//       });
-
-//       if (user && !user.client) {
-//         throw new UnauthorizedException(
-//           'An account with this email already exists but is not a client account.',
-//         );
-//       }
-
-//       if (!user) {
-//         this.logger.log(
-//           `User not found for ${googleUser.email}. Creating new client user.`,
-//         );
-//         const userRepo = manager.getRepository(User);
-//         const clientRepo = manager.getRepository(Client);
-
-//         const password = await bcrypt.hash(Math.random().toString(36), 10);
-//         const newUserEntity = userRepo.create({
-//           email: googleUser.email,
-//           first_name: googleUser.firstName,
-//           last_name: googleUser.lastName,
-//           password: password,
-//         });
-
-//         // CORRECCIÓN: Se crea el cliente, se le asigna el usuario y se guarda. Cascade se encarga del resto.
-//         const newClient = clientRepo.create({ user: newUserEntity });
-//         const savedClient = await clientRepo.save(newClient);
-
-//         // Asignamos el usuario recién creado (con su ID) para generar el token.
-//         user = savedClient.user;
-//       }
-
-//       if (!user)
-//         throw new InternalServerErrorException(
-//           'User could not be created or retrieved.',
-//         );
-
-//       const payload = this.createJwtPayload(user, 'CLIENT');
-//       return this.jwtService.sign(payload);
-//     });
-//   }
-//   // #endregion
-
-//   // --- MÉTODOS PRIVADOS REFACTORIZADOS ---
-
-//   private async validateUserPassword(
-//     loginDto: LoginDto,
-//     userType: 'employee' | 'client',
-//   ): Promise<User> {
-//     const { email, password } = loginDto;
-
-//     const relations =
-//       userType === 'employee'
-//         ? { employee: { roles: true } }
-//         : { client: true };
-
-//     const user = await this.userRepository.findOne({
-//       where: { email },
-//       relations,
-//     });
-
-//     if (
-//       !user ||
-//       (userType === 'employee' && !user.employee) ||
-//       (userType === 'client' && !user.client)
-//     ) {
-//       throw new UnauthorizedException('Invalid credentials');
-//     }
-
-//     const isPasswordMatching = await bcrypt.compare(password, user.password);
-//     if (!isPasswordMatching) {
-//       throw new UnauthorizedException('Invalid credentials');
-//     }
-
-//     return user;
-//   }
-
-//   private createJwtPayload(
-//     user: User,
-//     fixedRole?: 'CLIENT',
-//   ): { sub: string; email: string; name: string; roles: string[] } {
-//     const roles = fixedRole
-//       ? [fixedRole]
-//       : user.employee.roles.map((role) => role.name);
-//     return {
-//       sub: user.id,
-//       email: user.email,
-//       name: `${user.first_name} ${user.last_name}`,
-//       roles,
-//     };
-//   }
-
-//   private async registerUserWithRole(
-//     dto: RegisterEmployeeDto | RegisterClientDto,
-//     role: 'employee' | 'client',
-//   ): Promise<User> {
-//     return this.dataSource.transaction(async (manager) => {
-//       const userRepo = manager.getRepository(User);
-//       const existingUser = await userRepo.findOneBy({ email: dto.email });
-
-//       if (existingUser) {
-//         throw new ConflictException('Email already registered');
-//       }
-
-//       const hashedPassword = await bcrypt.hash(dto.password, 10);
-//       const newUser = userRepo.create({
-//         ...dto,
-//         password: hashedPassword,
-//       });
-
-//       if (role === 'employee') {
-//         const employeeRepo = manager.getRepository(Employee);
-//         const newEmployee = employeeRepo.create({ user: newUser });
-//         await employeeRepo.save(newEmployee);
-//       } else {
-//         const clientRepo = manager.getRepository(Client);
-//         const newClient = clientRepo.create({ user: newUser });
-//         await clientRepo.save(newClient);
-//       }
-
-//       return newUser;
-//     });
-//   }
-// }

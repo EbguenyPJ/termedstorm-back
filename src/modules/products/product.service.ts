@@ -46,34 +46,34 @@ export class ProductService {
     await queryRunner.startTransaction();
 
     try {
-      const { variants, ...updateDto } = createDto;
+      const { variants, ...productData } = createDto;
 
       const existing = await queryRunner.manager.findOne(Product, {
-        where: [{ code: updateDto.code }, { name: updateDto.name }],
+        where: [{ code: productData.code }, { name: productData.name }],
       });
 
       if (existing) {
         throw new BadRequestException(
           `Product already exists with ${
-            existing.code === updateDto.code ? 'code' : 'name'
-          }: ${existing.code === updateDto.code ? updateDto.code : updateDto.name}`,
+            existing.code === productData.code ? 'code' : 'name'
+          }: ${existing.code === productData.code ? productData.code : productData.name}`,
         );
       }
 
       const category = await queryRunner.manager.findOneBy(Category, {
-        id: updateDto.category_id,
+        id: productData.category_id,
       });
       const subCategory = await queryRunner.manager.findOneBy(SubCategory, {
-        id: updateDto.sub_category_id,
+        id: productData.sub_category_id,
       });
       const brand = await queryRunner.manager.findOneBy(Brand, {
-        id: updateDto.brand_id,
+        id: productData.brand_id,
       });
       const employee = await queryRunner.manager.findOneBy(Employee, {
-        id: updateDto.employee_id,
+        id: productData.employee_id,
       });
 
-      if (!category || !subCategory || !brand) {
+      if (!category || !subCategory || !brand || !employee) {
         throw new NotFoundException(
           `Invalid foreign key: ${[
             !category && 'category',
@@ -86,7 +86,7 @@ export class ProductService {
         );
       }
 
-      let slug = slugify(updateDto.name); // NACHO
+      let slug = slugify(productData.name); // NACHO
       const slugExists = await queryRunner.manager.findOne(Product, {
         where: { slug },
       });
@@ -95,7 +95,7 @@ export class ProductService {
       }
 
       const product = queryRunner.manager.create(Product, {
-        ...updateDto,
+        ...productData,
         slug, // NACHO
       });
       const savedProduct = await queryRunner.manager.save(product);
