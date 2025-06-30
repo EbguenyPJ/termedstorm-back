@@ -59,32 +59,54 @@ export class OrdersService {
   }
 
   async createCashOrder(dto: CreateOrderDto): Promise<Order> {
-    const variantIds = dto.products.map((p) => p.variant_id);
-    const dbVariants =
-      await this.productService.findManyVariantsByIds(variantIds);
-    const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
-    const totalOrder = dto.products.reduce((sum, orderItem) => {
-      const variant = variantMap.get(orderItem.variant_id);
-      if (!variant)
-        throw new NotFoundException(
-          `Variante con ID ${orderItem.variant_id} no encontrada.`,
-        );
-      return sum + variant.product.sale_price * orderItem.quantity;
-    }, 0);
+    this.logger.log('--- Ejecutando createCashOrder para pago en efectivo ---');
 
-    return this.dataSource.transaction((entityManager) =>
-      this.buildOrderInTransaction(
-        {
-          employeeId: dto.employee_id,
-          clientEmail: dto.email,
-          orderProducts: dto.products,
-          dbVariants,
-          totalOrder,
-          paymentMethod: dto.payment_method,
-        },
-        entityManager,
-      ),
-    );
+    try {
+      const variantIds = dto.products.map((p) => p.variant_id);
+      this.logger.debug(
+        `Buscando variantes para IDs: ${variantIds.join(', ')}`,
+      );
+
+      const dbVariants =
+        await this.productService.findManyVariantsByIds(variantIds);
+
+      const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
+      const totalOrder = dto.products.reduce((sum, orderItem) => {
+        const variant = variantMap.get(orderItem.variant_id);
+        if (!variant)
+          throw new NotFoundException(
+            `Variante con ID ${orderItem.variant_id} no encontrada.`,
+          );
+        return sum + variant.product.sale_price * orderItem.quantity;
+      }, 0);
+
+      this.logger.debug(
+        'Iniciando transacción en la base de datos del tenant...',
+      );
+
+      return this.dataSource.transaction((entityManager) =>
+        this.buildOrderInTransaction(
+          {
+            employeeId: dto.employee_id,
+            clientEmail: dto.email,
+            orderProducts: dto.products,
+            dbVariants,
+            totalOrder,
+            paymentMethod: dto.payment_method,
+          },
+          entityManager,
+        ),
+      );
+    } catch (error) {
+      // ---- BLOQUE CATCH PARA CAPTURAR Y MOSTRAR EL ERROR DETALLADO ----
+      this.logger.error('--- ERROR ATRAPADO DENTRO DE createCashOrder ---');
+      this.logger.error(`Tipo de Error: ${error.constructor.name}`);
+      this.logger.error(`Mensaje del Error: ${error.message}`);
+      this.logger.error('Stack del Error:', error.stack);
+
+      // Re-lanzamos el error para que NestJS envíe la respuesta HTTP correcta al frontend
+      throw error;
+    }
   }
 
   async createCardPaymentSession(dto: CreateOrderDto) {
@@ -141,8 +163,8 @@ export class OrdersService {
     const session = await this.stripeService.createCheckoutSession(
       lineItems,
       metadata,
-      'http://aca-va-la-pag.com/pago-exitoso',
-      'http://la-pagina-again.com/pago-cancelado',
+      'http://localhost:4000/cart_payment/success',
+      'http://localhost:4000/cart_payment/cancelled',
       stripeCustomer.id,
     );
 
