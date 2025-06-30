@@ -5,10 +5,11 @@ import { AuditRepository } from './audit.repository';
 import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant-repository.provider';
 import { Audit } from './audit.entity';
 import { Order } from 'src/modules/orders/entities/order.entity';
+import { Employee } from 'src/modules/users/entities/employee.entity';
 
 @Module({
   imports: [
-    TenantTypeOrmModule.forFeature([Audit, Order]),
+    TenantTypeOrmModule.forFeature([Audit, Order,Employee]),
   ],
   controllers: [AuditController],
   providers: [AuditService, AuditRepository],

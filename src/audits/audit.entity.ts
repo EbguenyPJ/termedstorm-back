@@ -13,7 +13,7 @@ import { Employee } from 'src/modules/users/entities/employee.entity';
 
 @Entity('tw_arqueos')
 export class Audit {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', { name: 'id_arqueo' })
   id: string;
 
   @Column({
@@ -54,10 +54,11 @@ export class Audit {
   time: string;
 
   @Column({ name: 'id_empleado', type: 'int' })
-  employeeId: number;
-  // @ManyToOne(() => Employee, { eager: true })
-  // @JoinColumn({ name: 'id_empleado' })
-  // employee: Employee | string;
+ readonly employeeId: number;
+  
+   @ManyToOne(() => Employee, { eager: true })
+   @JoinColumn({ name: 'id_empleado' })
+   employee: Employee | string;
 
   @ManyToOne(() => Cut, (cut) => cut.audits, { nullable: true })
   @JoinColumn({ name: 'id_corte' })
