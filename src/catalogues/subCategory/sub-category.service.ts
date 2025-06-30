@@ -75,6 +75,7 @@ export class SubCategoryService {
 
     const subCategory = this.subCategoryRepository.create({
       ...createDto,
+      slug, // NACHO
       categories: existingCategories,
       slug, // NACHO
     });

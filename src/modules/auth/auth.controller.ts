@@ -70,7 +70,7 @@ export class AuthController {
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 días
     });
     response.redirect(
-      'https://nivoapp.vercel.app/auth/success?from=google&type=client',
+      'http://localhost:3000/auth/success?from=google&type=client',
     );
   }
 
@@ -103,6 +103,7 @@ export class AuthController {
       path: '/',
     });
     return { message: 'Login successful' };
+
   }
 
   @Get('employee/google')
@@ -127,7 +128,7 @@ export class AuthController {
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 días,
     });
     response.redirect(
-      'https://nivoapp.vercel.app/auth/success?from=google&type=employee',
+      'http:/localhost:3000/auth/success?from=google&type=employee',
     );
   }
 
