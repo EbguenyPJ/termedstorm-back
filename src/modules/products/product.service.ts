@@ -40,13 +40,24 @@ export class ProductService {
     return this.productRepository.save(data);
   }
 
-  async create(createDto: CreateProductDto): Promise<any> {
+  async create(createDto: CreateProductDto, userId: string): Promise<any> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       const { variants, ...productData } = createDto;
+
+      delete (productData as any).employee_id;
+
+      const employee = await queryRunner.manager.findOne(Employee, {
+      where: { user: { id: userId } },
+      relations: ['user'], // para que funcione correctamente
+    });
+
+    if (!employee) {
+      throw new NotFoundException('No employee found for this user');
+    }
 
       const existing = await queryRunner.manager.findOne(Product, {
         where: [{ code: productData.code }, { name: productData.name }],
@@ -69,17 +80,13 @@ export class ProductService {
       const brand = await queryRunner.manager.findOneBy(Brand, {
         id: productData.brand_id,
       });
-      const employee = await queryRunner.manager.findOneBy(Employee, {
-        id: productData.employee_id,
-      });
 
-      if (!category || !subCategory || !brand || !employee) {
+      if (!category || !subCategory || !brand) {
         throw new NotFoundException(
           `Invalid foreign key: ${[
             !category && 'category',
             !subCategory && 'subCategory',
             !brand && 'brand',
-            !employee && 'employee',
           ]
             .filter(Boolean)
             .join(', ')}`,
@@ -97,6 +104,7 @@ export class ProductService {
       const product = queryRunner.manager.create(Product, {
         ...productData,
         slug, // NACHO
+        employee,
       });
       const savedProduct = await queryRunner.manager.save(product);
 

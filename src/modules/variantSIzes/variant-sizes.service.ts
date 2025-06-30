@@ -142,9 +142,12 @@ export class VariantSizesService {
   }
 
   async remove(id: string) {
-    const exists = await this.variantSizeRepository.findOneBy({ id });
+    const exists = await this.variantSizeRepository.findOne({
+    where: { id },
+    withDeleted: false,
+  });
     if (!exists)
-      throw new NotFoundException(`VariantSize with id ${id} not found`);
+      throw new NotFoundException(`VariantSize with id ${id} not found or already deleted`);
     await this.variantSizeRepository.update(id, { deleted_at: new Date() });
     return {
       message: `VariantSize with id ${id} deleted successfully`,

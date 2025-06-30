@@ -9,12 +9,16 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AutoAudit } from '../auditModification/decorator/audit-log.decorator';
 import { ProductSearchService } from './searchProducts.service';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { Employee } from '../users/entities/employee.entity';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('products')
 export class ProductController {
@@ -25,8 +29,10 @@ export class ProductController {
 
   @AutoAudit()
   @Post()
-  create(@Body() createDto: CreateProductDto) {
-    return this.productService.create(createDto);
+  @UseGuards(AuthGuard('jwt'))
+  create(@Body() createDto: CreateProductDto, @GetUser() user: { userId: string }) {
+    console.log('Empleado extraído del token:', user.userId);
+    return this.productService.create(createDto, user.userId);
   }
 
   @Get('search')

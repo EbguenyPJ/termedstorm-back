@@ -20,7 +20,8 @@ import { Client } from '../users/entities/client.entity';
 import { Role } from '../roles/entities/role.entity';
 import { stringify } from 'querystring';
 import { In } from 'typeorm';
-import { MailerService } from '../notifications/mailer/mailer.service'; //Steven
+import { NotificationsService } from '../notifications/notifications.service'; //Steven
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
     private readonly clientRepository: Repository<Client>,
     private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService, //Steven
+    private readonly notificationsService: NotificationsService, //Steven
   ) {}
 
   //& --- LÓGICAS PÚBLICAS ---
@@ -57,7 +58,7 @@ export class AuthService {
   // #region Registrations
   async registerEmployee(
     registerEmployeeDto: RegisterEmployeeDto,
-  ): Promise<User> {
+  ): Promise<Partial<User>> {
     const { roles: roleIds, ...userDto } = registerEmployeeDto; // Separa los IDs de los roles del resto del DTO
 
     return this.dataSource.transaction(async (manager) => {
@@ -92,16 +93,21 @@ export class AuthService {
       });
 
       // 5. Guardar el empleado. Gracias a `cascade: true` en la relación, el usuario se guardará automáticamente.
-      await employeeRepo.save(newEmployee);
+      const savedEmployee = await employeeRepo.save(newEmployee);
 
-      await this.mailerService.sendWelcomeEmailToEmployee(newEmployee); //Steven
+      await this.notificationsService.notifyWelcome(
+        savedEmployee,
+        'employee',
+        manager,
+      );
 
-      // La contraseña ya está excluida por el decorador @Exclude() en la entidad User
-      return newUser;
+      //Steven
+      // 6. Retornar el usuario guardado, excluyendo campos no expuestos
+      return instanceToPlain(savedEmployee.user);
     });
   }
 
-  async registerClient(registerClientDto: RegisterClientDto): Promise<User> {
+  async registerClient(registerClientDto: RegisterClientDto): Promise<Partial<User>> {
     return this.dataSource.transaction(async (manager) => {
       const userRepo = manager.getRepository(User);
       const clientRepo = manager.getRepository(Client);
@@ -125,9 +131,15 @@ export class AuthService {
       const newClient = clientRepo.create({ user: newUser });
       await clientRepo.save(newClient);
 
-      await this.mailerService.sendWelcomeEmailToClient(newClient); //Steven
+            await this.notificationsService.notifyWelcome(
+        newClient,
+        'client',
+        manager,
+      );
 
-      return newUser;
+      //Steven
+      // 6. Retornar el usuario guardado, excluyendo campos no expuestos
+      return instanceToPlain(newClient.user);
     });
   }
   // #endregion
@@ -147,7 +159,7 @@ export class AuthService {
       );
     }
 
-      await this.mailerService.sendLoginNotificationToEmployee(user.employee); //Steven
+    await this.notificationsService.notifyWelcome(user.employee, 'employee'); //Steven
 
     const payload = this.createJwtPayload(user);
     return this.jwtService.sign(payload);
@@ -198,7 +210,7 @@ export class AuthService {
           'User could not be created or retrieved.',
         );
 
-        await this.mailerService.sendLoginNotificationToClient(user.client); //Steven
+      await this.notificationsService.notifyWelcome(user.client, 'client'); //Steven
 
       const payload = this.createJwtPayload(user, 'CLIENT');
       return this.jwtService.sign(payload);
@@ -216,8 +228,8 @@ export class AuthService {
 
     const relations =
       userType === 'employee'
-        ? { employee: { roles: true } }
-        : { client: true };
+        ? { employee: { roles: true, user: true } } //Setevn
+        : { client: { user: true } }; //Steven
 
     const user = await this.userRepository.findOne({
       where: { email },
@@ -239,10 +251,10 @@ export class AuthService {
 
     //Steven
     if (userType === 'employee') {
-    await this.mailerService.sendLoginNotificationToEmployee(user.employee);
-  } else {
-    await this.mailerService.sendLoginNotificationToClient(user.client);
-  } //Steven
+      await this.notificationsService.notifyLogin(user.employee, 'employee');
+    } else {
+      await this.notificationsService.notifyLogin(user.client, 'client');
+    } //Steven
 
     return user;
   }

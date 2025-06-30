@@ -12,10 +12,11 @@ import { Order } from '../orders/entities/order.entity';
 import { NotificationsTestController } from './notifications.controller';
 import { MailerService } from './mailer/mailer.service';
 import { CompanySubscription } from 'src/master_data/company_subscription/entities/company-subscription.entity';
+import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant-repository.provider';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Notification, Membership, VariantSize, Order, CompanySubscription]),
+    TenantTypeOrmModule.forFeature([Notification, Membership, VariantSize, Order, CompanySubscription]),
     MailerModule.forRoot({
       transport: {
         service: 'gmail',
@@ -34,8 +35,8 @@ import { CompanySubscription } from 'src/master_data/company_subscription/entiti
       },
     }),
   ],
-  providers: [NotificationsService, NotificationsCronService, MailerService],
-  exports: [NotificationsService, MailerService],
+  providers: [NotificationsService, NotificationsCronService, MailerService,],
+  exports: [NotificationsService, MailerService, TenantTypeOrmModule],
   controllers: [NotificationsTestController],
 })
 export class NotificationsModule {}

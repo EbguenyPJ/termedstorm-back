@@ -1,21 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
+import { Repository, EntityManager } from 'typeorm';
+
 import { Notification } from './entities/notification.entity';
 import { MailerService } from './mailer/mailer.service';
 import { NotificationType } from './types/notification-type.enum';
+
 import { Client } from 'src/modules/users/entities/client.entity';
 import { Employee } from 'src/modules/users/entities/employee.entity';
 import { Customer } from 'src/master_data/customer/entities/customer.entity';
-import { Order } from '../orders/entities/order.entity';
-import { Product } from '../products/entities/product.entity';
 import { VariantSize } from '../variantSIzes/entities/variantSizes.entity';
-import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
 
 @Injectable()
 export class NotificationsService {
   constructor(
-    @InjectRepository(Notification)
+    @InjectTenantRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
     private readonly mailerService: MailerService,
   ) {}
@@ -30,8 +29,13 @@ export class NotificationsService {
     sendEmail?: boolean;
     emailTemplate?: string;
     emailContext?: Record<string, any>;
+    manager?: EntityManager;
   }) {
-    const notification = this.notificationRepository.create({
+    const repo = options.manager
+      ? options.manager.getRepository(Notification)
+      : this.notificationRepository;
+
+    const notification = repo.create({
       type: options.type,
       title: options.title,
       message: options.message,
@@ -41,7 +45,7 @@ export class NotificationsService {
       sent_by_email: !!options.sendEmail,
     });
 
-    await this.notificationRepository.save(notification);
+    await repo.save(notification);
 
     if (options.sendEmail && options.emailTemplate) {
       const to =
@@ -63,7 +67,7 @@ export class NotificationsService {
           {
             ...options.emailContext,
             name,
-          }
+          },
         );
       } else {
         console.warn('No se pudo enviar email: destinatario no definido');
@@ -73,7 +77,72 @@ export class NotificationsService {
     return notification;
   }
 
-  // Para un solo producto
+  async notifyLogin(employeeOrClient: Employee | Client, type: 'employee' | 'client') {
+    const email = employeeOrClient?.user?.email;
+    const name = employeeOrClient?.user?.first_name || 'Usuario';
+
+    const loginTime = new Date().toLocaleString('es-CO', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+
+    const common = {
+      type: NotificationType.LOGIN_SUCESS,
+      title: 'Inicio de sesión detectado',
+      message: `Hola ${name}, has iniciado sesión el ${loginTime}`,
+      sendEmail: true,
+      emailContext: { loginTime },
+    };
+
+    if (type === 'employee') {
+      return this.sendNotification({
+        ...common,
+        employee: employeeOrClient as Employee,
+        emailTemplate: 'login-employee',
+      });
+    } else {
+      return this.sendNotification({
+        ...common,
+        client: employeeOrClient as Client,
+        emailTemplate: 'login-client',
+      });
+    }
+  }
+
+  async notifyWelcome(
+    user: Employee | Client,
+    type: 'employee' | 'client',
+    manager?: EntityManager,
+  ) {
+    const email = user?.user?.email;
+    const name = `${user?.user?.first_name} ${user?.user?.last_name}`;
+
+    const common = {
+      type: NotificationType.WELCOME,
+      sendEmail: true,
+      emailContext: { name },
+      manager,
+    };
+
+    if (type === 'employee') {
+      return this.sendNotification({
+        ...common,
+        title: '¡Bienvenido a Nivo!',
+        message: `Hola ${name}, bienvenido al equipo.`,
+        employee: user as Employee,
+        emailTemplate: 'welcome-employee',
+      });
+    } else {
+      return this.sendNotification({
+        ...common,
+        title: '¡Bienvenido a nuestra tienda!',
+        message: `Hola ${name}, gracias por registrarte.`,
+        client: user as Client,
+        emailTemplate: 'welcome-client',
+      });
+    }
+  }
+
   async notifyIfLowStock(variantSize: VariantSize) {
     if (variantSize.stock >= 5) return;
 
@@ -82,42 +151,37 @@ export class NotificationsService {
 
     if (!product || !employee?.user?.email) return;
 
-    await this.sendNotification({
-      type: NotificationType.PRODUCT_LOW_STOCK,
-      title: 'Producto con stock bajo',
-      message: `El producto "${product.name}" tiene poco stock.`,
-      employee,
-      sendEmail: true,
-      emailTemplate: 'stock-low-single',
-      emailContext: {
-        productName: product.name,
-        stockLeft: variantSize.stock,
-        productUrl: `https://nivo.com/products/${product.slug}`,
-        productImage: variantSize.variantProduct.image?.[0] || '',
-      },
-    });
+    const admins = await this.getAdmins();
+
+    for (const admin of admins) {
+      await this.sendNotification({
+        type: NotificationType.PRODUCT_LOW_STOCK,
+        title: 'Producto con stock bajo',
+        message: `El producto "${product.name}" tiene poco stock.`,
+        employee: admin,
+        sendEmail: true,
+        emailTemplate: 'stock-low-single',
+        emailContext: {
+          productName: product.name,
+          stockLeft: variantSize.stock,
+          productUrl: `https://nivo.com/products/${product.slug}`,
+          productImage: variantSize.variantProduct.image?.[0] || '',
+        },
+      });
+    }
   }
 
-  // Para varios productos (usado por el CRON)
   async notifyLowStockMultiple(variants: VariantSize[]) {
-    const grouped = new Map<string, { employee: Employee; variants: VariantSize[] }>();
+    if (variants.length === 0) return;
 
-    for (const v of variants) {
-      const emp = v.variantProduct.product.employee;
-      if (!emp?.user?.email) continue;
+    const admins = await this.getAdmins();
 
-      if (!grouped.has(emp.id)) {
-        grouped.set(emp.id, { employee: emp, variants: [] });
-      }
-      grouped.get(emp.id)?.variants.push(v);
-    }
-
-    for (const { employee, variants } of grouped.values()) {
+    for (const admin of admins) {
       await this.sendNotification({
         type: NotificationType.PRODUCT_LOW_STOCK,
         title: 'Productos con stock bajo',
         message: `Tienes ${variants.length} productos con stock bajo.`,
-        employee,
+        employee: admin,
         sendEmail: true,
         emailTemplate: 'stock-low-multiple',
         emailContext: {
@@ -128,5 +192,17 @@ export class NotificationsService {
         },
       });
     }
+  }
+
+  public async getAdmins(): Promise<Employee[]> {
+    const repo = this.notificationRepository.manager.getRepository(Employee);
+
+    const employees = await repo.find({
+      relations: ['roles', 'user'],
+    });
+
+    return employees.filter((emp) =>
+      emp.roles.some((role) => role.name?.toLowerCase() === 'admin'),
+    );
   }
 }

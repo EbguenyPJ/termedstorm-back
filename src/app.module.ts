@@ -37,6 +37,7 @@ import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { ChatModule } from './modules/websocket-chat/chat.module';
 import { ChatGateway } from './modules/websocket-chat/chat.gateway';import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 
 @Module({
