@@ -7,22 +7,44 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { CutsService } from './cut.service';
 import { CreateCutDto } from './create-cutDto';
 import { UpdateCutDto } from './update-cutDto';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+
+interface AuthRequest extends Request {
+  user: {
+    userId: string;
+    email: string;
+    name: string;
+    roles: string[];
+  };
+}
 
 @ApiTags('Cortes')
+@ApiBearerAuth()
 @Controller('cuts')
 export class CutsController {
   constructor(private readonly cutsService: CutsService) {}
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Crear un corte' })
   @ApiBody({ type: CreateCutDto })
-  create(@Body() dto: CreateCutDto) {
-    return this.cutsService.create(dto);
+  create(@Body() dto: CreateCutDto, @Req() req: AuthRequest) {
+
+    return this.cutsService.create(dto, req.user);
   }
 
   @Get()
@@ -53,6 +75,14 @@ export class CutsController {
     return this.cutsService.remove(id);
   }
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -53,8 +53,8 @@ export class Audit {
   @Column({ name: 't_hora_arqueo', type: 'time' })
   time: string;
 
-  @Column({ name: 'id_empleado', type: 'int' })
- readonly employeeId: number;
+ // @Column({ name: 'id_empleado', type: 'int' })
+ //readonly employeeId: number;
   
    @ManyToOne(() => Employee, { eager: true })
    @JoinColumn({ name: 'id_empleado' })

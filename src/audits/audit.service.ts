@@ -28,7 +28,7 @@ export class AuditService {
       totalCashSales: cash,
       totalCardSales: card,
       saleCount: pendingOrders.length,
-      employee: { id: employee.id },
+      employee,
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0],
     };
