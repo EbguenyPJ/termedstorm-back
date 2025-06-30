@@ -33,7 +33,6 @@ export class ProductController {
     
     private readonly productService: ProductService,
     private readonly csvService: ProductsCsvService,
-  ,
     private readonly productSearchService: ProductSearchService,
   ) {}
 
@@ -75,15 +74,6 @@ export class ProductController {
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.delete(id);
   }
-
-  // NACHO
-  @Get('category/:categorySlug/subcategory/:subCategorySlug')
-  getByCategoryAndSubcategory(
-  @Param('categorySlug') categorySlug: string,
-  @Param('subCategorySlug') subCategorySlug: string,
-) {
-  return this.productService.findByCategoryAndSubcategorySlugs(categorySlug, subCategorySlug);
-}
 
   // NACHO
   @Get('category/:categorySlug/subcategory/:subCategorySlug')

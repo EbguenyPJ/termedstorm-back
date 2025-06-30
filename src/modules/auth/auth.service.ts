@@ -6,8 +6,6 @@ import {
   Logger,
   BadRequestException, // Excepción usada para la nueva validación
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Repository, In } from 'typeorm';
@@ -19,31 +17,41 @@ import { User } from '../users/entities/user.entity';
 import { Employee } from '../users/entities/employee.entity';
 import { Client } from '../users/entities/client.entity';
 import { Role } from '../roles/entities/role.entity';
-import { Role } from '../roles/entities/role.entity';
-import { stringify } from 'querystring';
-import { In } from 'typeorm';
+import { TenantConnectionService } from '../../common/tenant-connection/tenant-connection.service';
+import { getTenantContext } from '../../common/context/tenant-context';
 import { NotificationsService } from '../notifications/notifications.service'; //Steven
 import { instanceToPlain } from 'class-transformer';
+
+
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Employee)
-    private readonly employeeRepository: Repository<Employee>,
-    @InjectRepository(Client)
-    private readonly clientRepository: Repository<Client>,
-    private readonly dataSource: DataSource,
     private readonly jwtService: JwtService,
+    private readonly tenantConnectionService: TenantConnectionService,
     private readonly notificationsService: NotificationsService, //Steven
   ) {}
 
-  //& --- LÓGICAS PÚBLICAS ---
+  // --- 🔧 Métodos utilitarios para obtener repositorios dinámicos ---
+  private getDataSource() {
+    return this.tenantConnectionService.getTenantDataSourceFromContext();
+  }
 
-  // #region Logins
+  private getUserRepository(): Repository<User> {
+    return this.getDataSource().getRepository(User);
+  }
+
+  private getEmployeeRepository(): Repository<Employee> {
+    return this.getDataSource().getRepository(Employee);
+  }
+
+  private getClientRepository(): Repository<Client> {
+    return this.getDataSource().getRepository(Client);
+  }
+
+  // --- 🔐 Login ---
   async employeeLogin(loginDto: LoginDto): Promise<string> {
     const user = await this.validateUserPassword(loginDto, 'employee');
     const payload = this.createJwtPayload(user);
@@ -55,103 +63,24 @@ export class AuthService {
     const payload = this.createJwtPayload(user, 'CLIENT');
     return this.jwtService.sign(payload);
   }
-  // #endregion
 
-  // #region Registrations
+  // --- 📝 Registro ---
   async registerEmployee(
     registerEmployeeDto: RegisterEmployeeDto,
-  ): Promise<Partial<User>> {
-    const { roles: roleIds, ...userDto } = registerEmployeeDto; // Separa los IDs de los roles del resto del DTO
-
-    return this.dataSource.transaction(async (manager) => {
-      const userRepo = manager.getRepository(User);
-      const roleRepo = manager.getRepository(Role);
-      const employeeRepo = manager.getRepository(Employee);
-
-      // 1. Verificar si el email ya existe
-      const existingUser = await userRepo.findOneBy({ email: userDto.email });
-      if (existingUser) {
-        throw new ConflictException('Email already registered');
-      }
-
-      // 2. Verificar que todos los roles proporcionados existan
-      const existingRoles = await roleRepo.findBy({ id: In(roleIds) });
-      if (existingRoles.length !== roleIds.length) {
-        throw new BadRequestException('One or more roles are invalid');
-      }
-
-      // 3. Crear y guardar la entidad User
-      const hashedPassword = await bcrypt.hash(userDto.password, 10);
-      const newUser = userRepo.create({
-        ...userDto,
-        password: hashedPassword,
-      });
-
-      // 4. Crear la entidad Employee, asignando el nuevo usuario y los roles encontrados
-      // Gracias al @JoinTable en la entidad Employee, TypeORM manejará la tabla pivote employee_roles
-      const newEmployee = employeeRepo.create({
-        user: newUser, // Asigna el objeto User completo
-        roles: existingRoles, // Asigna el arreglo de entidades Role encontradas
-      });
-
-      // 5. Guardar el empleado. Gracias a `cascade: true` en la relación, el usuario se guardará automáticamente.
-      const savedEmployee = await employeeRepo.save(newEmployee);
-
-      await this.notificationsService.notifyWelcome(
-        savedEmployee,
-        'employee',
-        manager,
-      );
-
-      //Steven
-      // 6. Retornar el usuario guardado, excluyendo campos no expuestos
-      return instanceToPlain(savedEmployee.user);
-    });
+  ): Promise<User> {
+    return this.registerUserWithRole(registerEmployeeDto, 'employee');
   }
 
-  async registerClient(registerClientDto: RegisterClientDto): Promise<Partial<User>> {
-    return this.dataSource.transaction(async (manager) => {
-      const userRepo = manager.getRepository(User);
-      const clientRepo = manager.getRepository(Client);
-
-      // Verificar si el email ya existe
-      const existingUser = await userRepo.findOneBy({
-        email: registerClientDto.email,
-      });
-      if (existingUser) {
-        throw new ConflictException('Email already registered');
-      }
-
-      // Crear y guardar la entidad User
-      const hashedPassword = await bcrypt.hash(registerClientDto.password, 10);
-      const newUser = userRepo.create({
-        ...registerClientDto,
-        password: hashedPassword,
-      });
-
-      // Crear y guardar la entidad Client
-      const newClient = clientRepo.create({ user: newUser });
-      await clientRepo.save(newClient);
-
-            await this.notificationsService.notifyWelcome(
-        newClient,
-        'client',
-        manager,
-      );
-
-      //Steven
-      // 6. Retornar el usuario guardado, excluyendo campos no expuestos
-      return instanceToPlain(newClient.user);
-    });
+  async registerClient(registerClientDto: RegisterClientDto): Promise<User> {
+    return this.registerUserWithRole(registerClientDto, 'client');
   }
-  // #endregion
 
-  // #region Google Logins
+  // --- 🔐 Google Logins ---
   // ... (El resto de los métodos de Google Login permanecen sin cambios)
   async validateAndLoginGoogleEmployee(googleUser: {
     email: string;
   }): Promise<string> {
-    const user = await this.userRepository.findOne({
+    const user = await this.getUserRepository().findOne({
       where: { email: googleUser.email },
       relations: { employee: { roles: true } },
     });
@@ -162,7 +91,7 @@ export class AuthService {
       );
     }
 
-    await this.notificationsService.notifyWelcome(user.employee, 'employee'); //Steven
+     await this.notificationsService.notifyWelcome(user.employee, 'employee'); //Steven
 
     const payload = this.createJwtPayload(user);
     return this.jwtService.sign(payload);
@@ -173,8 +102,13 @@ export class AuthService {
     firstName: string;
     lastName: string;
   }): Promise<string> {
-    return this.dataSource.transaction(async (manager) => {
-      let user = await manager.findOne(User, {
+    const dataSource = this.getDataSource();
+
+    return dataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(User);
+      const clientRepo = manager.getRepository(Client);
+
+      let user = await userRepo.findOne({
         where: { email: googleUser.email },
         relations: { client: true },
       });
@@ -189,37 +123,35 @@ export class AuthService {
         this.logger.log(
           `User not found for ${googleUser.email}. Creating new client user.`,
         );
-        const userRepo = manager.getRepository(User);
-        const clientRepo = manager.getRepository(Client);
-
         const password = await bcrypt.hash(Math.random().toString(36), 10);
-        const newUserEntity = userRepo.create({
+        const newUser = userRepo.create({
           email: googleUser.email,
           first_name: googleUser.firstName,
           last_name: googleUser.lastName,
-          password: password,
+          password,
         });
 
-        // CORRECCIÓN: Se crea el cliente, se le asigna el usuario y se guarda. Cascade se encarga del resto.
-        const newClient = clientRepo.create({ user: newUserEntity });
+        const newClient = clientRepo.create({ user: newUser });
         const savedClient = await clientRepo.save(newClient);
-
-        // Asignamos el usuario recién creado (con su ID) para generar el token.
         user = savedClient.user;
-      }
+      
+        //Steven
+      await this.notificationsService.notifyWelcome(
+          savedClient,
+          'client',
+          manager,
+        ); //Steven
+      };
 
       if (!user)
         throw new InternalServerErrorException(
           'User could not be created or retrieved.',
         );
 
-      await this.notificationsService.notifyWelcome(user.client, 'client'); //Steven
-
       const payload = this.createJwtPayload(user, 'CLIENT');
       return this.jwtService.sign(payload);
     });
   }
-  // #endregion
 
   // --- 🔒 Métodos privados ---
   // ... (validateUserPassword y createJwtPayload permanecen sin cambios)
@@ -231,10 +163,10 @@ export class AuthService {
 
     const relations =
       userType === 'employee'
-        ? { employee: { roles: true, user: true } } //Setevn
-        : { client: { user: true } }; //Steven
+        ? { employee: { roles: true } }
+        : { client: true };
 
-    const user = await this.userRepository.findOne({
+    const user = await this.getUserRepository().findOne({
       where: { email },
       relations,
     });
@@ -252,12 +184,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    //Steven
+     // 🔔 Notificación de login //Steven
     if (userType === 'employee') {
       await this.notificationsService.notifyLogin(user.employee, 'employee');
     } else {
       await this.notificationsService.notifyLogin(user.client, 'client');
-    } //Steven
+    }
 
     return user;
   }
@@ -265,10 +197,24 @@ export class AuthService {
   private createJwtPayload(
     user: User,
     fixedRole?: 'CLIENT',
-  ): { sub: string; email: string; name: string; roles: string[] } {
+  ): {
+    sub: string;
+    email: string;
+    name: string;
+    roles: string[];
+    customerId: string;
+  } {
     const roles = fixedRole
       ? [fixedRole]
       : user.employee.roles.map((role) => role.name);
+
+    const customerId = getTenantContext()?.customerId;
+    if (!customerId) {
+      throw new InternalServerErrorException(
+        'No customerId in tenant context.',
+      );
+    }
+
     return {
       sub: user.id,
       email: user.email,
@@ -283,7 +229,9 @@ export class AuthService {
     dto: RegisterEmployeeDto | RegisterClientDto,
     role: 'employee' | 'client',
   ): Promise<User> {
-    return this.dataSource.transaction(async (manager) => {
+    const dataSource = this.getDataSource();
+
+    return dataSource.transaction(async (manager) => {
       const userRepo = manager.getRepository(User);
       const existingUser = await userRepo.findOneBy({ email: dto.email });
 
@@ -331,17 +279,33 @@ export class AuthService {
           roles: rolesToAssign 
         });
         
-        await employeeRepo.save(newEmployee);
+            const savedEmployee = await employeeRepo.save(newEmployee);
+
+        await this.notificationsService.notifyWelcome(
+          savedEmployee,
+          'employee',
+          manager,
+        ); //Steven
+
+        return savedEmployee.user;
+
+        
 
       } else {
         const clientRepo = manager.getRepository(Client);
         newUser = userRepo.create({ ...dto, password: hashedPassword });
 
         const newClient = clientRepo.create({ user: newUser });
-        await clientRepo.save(newClient);
-      }
-      
+        const savedClient = await clientRepo.save(newClient);
+
+        await this.notificationsService.notifyWelcome(
+          savedClient,
+          'client',
+          manager,
+        ); //Steven
+
       return newUser;
+    }
     });
   }
 }

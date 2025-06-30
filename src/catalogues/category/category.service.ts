@@ -12,7 +12,6 @@ import { instanceToPlain } from 'class-transformer';
 import { TenantConnectionService } from 'src/common/tenant-connection/tenant-connection.service';
 import { InjectTenantRepository } from 'src/common/typeorm-tenant-repository/tenant-repository.decorator';
 import { slugify } from '../../utils/slugify'; //NACHO
-import { slugify } from '../../utils/slugify'; //NACHO
 
 @Injectable()
 export class CategoryService {
