@@ -12,19 +12,19 @@ export class AuditService {
   async create(dto: CreateAuditDto, token?: string) {
     const pendingOrders = await this.repo.getPendingOrders();
 
-    const { cash, card, transfer } =
-      this.repo.calculateSalesTotals(pendingOrders);
+    const { cash, card } = this.repo.calculateSalesTotals(pendingOrders);
+
+    const totalCash = cash + card;
 
     const auditData = {
       description: dto.description,
-      totalCash: dto.totalCash,
+      totalCash,
       totalCashSales: cash,
       totalCardSales: card,
-      totalTransferSales: transfer,
       saleCount: pendingOrders.length,
       employee: {
         id: token ? extractEmployeeIdFromToken(token) : dto.employeeId,
-      } as Employee, // 👈 Esto evita el error de TypeScript
+      } as Employee,
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0],
     };

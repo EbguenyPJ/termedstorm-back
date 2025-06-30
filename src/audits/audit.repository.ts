@@ -3,6 +3,7 @@ import { Repository, IsNull } from 'typeorm';
 import { InjectTenantRepository } from '../common/typeorm-tenant-repository/tenant-repository.decorator';
 import { Audit } from './audit.entity';
 import { Order } from '../modules/orders/entities/order.entity';
+import { PaymentMethod } from 'src/modules/orders/payment-method.enum';
 
 @Injectable()
 export class AuditRepository {
@@ -17,24 +18,26 @@ export class AuditRepository {
   async getPendingOrders(): Promise<Order[]> {
     return this.orderRepo.find({
       where: { audit: IsNull() },
-      relations: ['type_of_payment'], // relación correcta según tu entity
+      //relations: ['type_of_payment'], // relación correcta según tu entity
     });
   }
 
   calculateSalesTotals(orders: Order[]) {
     let cash = 0;
     let card = 0;
-    let transfer = 0;
+    //let transfer = 0;
 
     for (const order of orders) {
-      const paymentName = order.type_of_payment?.name ?? '';
-
-      if (paymentName === 'Efectivo') cash += +order.total_order;
-      else if (paymentName === 'Tarjeta') card += +order.total_order;
-      else if (paymentName === 'Transferencia') transfer += +order.total_order;
+      // Leemos directamente de la propiedad de la orden
+      if (order.payment_method === PaymentMethod.Efectivo) {
+        // <-- CAMBIO AQUÍ
+        cash += +order.total_order;
+      } else if (order.payment_method === PaymentMethod.Tarjeta) {
+        // <-- CAMBIO AQUÍ
+        card += +order.total_order;
+      }
     }
-
-    return { cash, card, transfer };
+    return { cash, card };
   }
 
   async createAuditWithOrders(
