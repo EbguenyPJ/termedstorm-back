@@ -122,6 +122,7 @@ export class ChatGateway
       `Cliente ${client.data.userName || client.id} uniéndose a la sala ${tenantRoom}`,
     );
     client.join(tenantRoom);
+    client.emit('joined_room', { room: room });
   }
 
   @SubscribeMessage('event_message')
@@ -141,6 +142,7 @@ export class ChatGateway
       user: client.data.userName || client.data.userId,
       message: message,
       createdAt: new Date(),
+      room,
     });
   }
 

@@ -62,12 +62,23 @@ export class EmployeesService {
   }
 
   // FLOR AGREGADO
-  async findAllForTenant(): Promise<Employee[]> {
-    return this.employeeRepository.find({
+  async findAllForTenant(): Promise<any[]> {
+    const employees = await this.employeeRepository.find({
+      select: {
+        user: { id: true, email: true, first_name: true, last_name: true },
+        roles: { name: true },
+      },
       relations: {
         user: true,
         roles: true,
       },
     });
+
+    return employees.map((employee) => ({
+      userId: employee.user.id,
+      email: employee.user.email,
+      name: `${employee.user.first_name} ${employee.user.last_name}`.trim(),
+      roles: employee.roles.map((role) => role.name),
+    }));
   }
 }

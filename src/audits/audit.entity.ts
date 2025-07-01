@@ -13,7 +13,7 @@ import { Employee } from 'src/modules/users/entities/employee.entity';
 
 @Entity('tw_arqueos')
 export class Audit {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', { name: 'id_arqueo' })
   id: string;
 
   @Column({
@@ -32,13 +32,6 @@ export class Audit {
   })
   total_card_sales: number;
 
-  @Column({
-    name: 'total_ventas_transferencia',
-    type: 'decimal',
-    precision: 10,
-    scale: 2,
-  })
-  total_transfer_sales: number;
 
   @Column({ name: 'n_cantidad_ventas', type: 'int' })
   sale_count: number;
@@ -60,9 +53,25 @@ export class Audit {
   @Column({ name: 't_hora_arqueo', type: 'time' })
   time: string;
 
-  @ManyToOne(() => Employee, { eager: true })
-  @JoinColumn({ name: 'id_empleado' })
-  employee: Employee;
+  //AGREGO
+  @Column({ name: 'n_cantidad_gastos', type: 'int', nullable: true })
+expense_count: number;
+
+@Column({
+  name: 'n_total_gastos',
+  type: 'decimal',
+  precision: 10,
+  scale: 2,
+  nullable: true,
+})
+total_expenses: number;
+
+ // @Column({ name: 'id_empleado', type: 'int' })
+ //readonly employeeId: number;
+  
+   @ManyToOne(() => Employee, { eager: true })
+   @JoinColumn({ name: 'id_empleado' })
+   employee: Employee | string;
 
   @ManyToOne(() => Cut, (cut) => cut.audits, { nullable: true })
   @JoinColumn({ name: 'id_corte' })

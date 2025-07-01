@@ -36,7 +36,7 @@ export class EmployeesController {
   @Get('list') // FLOR AGREGADO
   // @Roles('ADMIN', 'MANAGER')
   @HttpCode(HttpStatus.OK)
-  getTenantEmployees() {
+  getTenantEmployees(): Promise<any[]> {
     return this.employeesService.findAllForTenant();
   }
 }
