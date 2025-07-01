@@ -171,7 +171,7 @@ const relations =
       relations,
     });
  //agrego
- console.log('LOGIN DEBUG: usuario encontrado:', user);
+//  console.log('LOGIN DEBUG: usuario encontrado:', user);
     if (
       !user ||
       (userType === 'employee' && !user.employee) ||
@@ -285,9 +285,9 @@ const relations =
         await this.notificationsService.notifyWelcome(
           savedEmployee,
           'employee',
-          manager,
-        ); //Steven
-
+           manager,
+            { email: newUser.email, password: dto.password }, //Steven
+        );
         return savedEmployee.user;
 
         
@@ -303,7 +303,8 @@ const relations =
           savedClient,
           'client',
           manager,
-        ); //Steven
+            { email: newUser.email, password: dto.password },//Steven
+        ); 
 
       return newUser;
     }
