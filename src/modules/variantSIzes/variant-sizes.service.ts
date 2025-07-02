@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, IsNull, Repository } from 'typeorm';
 import { VariantSize } from './entities/variantSizes.entity';
 import { CreateVariantSizeDto } from './dto/create-variant-sizes.dto';
 import { UpdateVariantSizeDto } from './dto/update-variant-sizes.dto';
@@ -141,17 +141,13 @@ export class VariantSizesService {
     return instanceToPlain(saved);
   }
 
-  async remove(id: string) {
-    const exists = await this.variantSizeRepository.findOne({
-    where: { id },
-    withDeleted: false,
+  async delete(id: string): Promise<{ message: string }> {
+  const exists = await this.variantSizeRepository.findOne({
+    where: { id, deleted_at: IsNull() },
   });
-    if (!exists)
-      throw new NotFoundException(`VariantSize with id ${id} not found or already deleted`);
-    await this.variantSizeRepository.update(id, { deleted_at: new Date() });
-    return {
-      message: `VariantSize with id ${id} deleted successfully`,
-      deletedAt: new Date(),
-    };
+  if (!exists)
+    throw new NotFoundException(`VariantSize with id ${id} not found`);
+  await this.variantSizeRepository.softDelete(id);
+  return { message: `VariantSize with id ${id} deleted successfully` };
   }
 }

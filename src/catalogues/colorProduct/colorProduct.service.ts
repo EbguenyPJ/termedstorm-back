@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 //import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Not } from 'typeorm';
+import { Repository, DataSource, Not, IsNull } from 'typeorm';
 import { Color } from './entities/colorProduct.entity';
 import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
@@ -20,20 +20,46 @@ export class ColorService {
   ) {}
 
   async create(createDto: CreateColorDto) {
-    const exists = await this.colorRepository.findOne({
-      where: [{ color: createDto.color }, { hexCode: createDto.hexCode }],
-    });
+    
+    const deletedColor = await this.colorRepository.findOne({
+    where: { color: createDto.color, deleted_at: Not(IsNull()) },
+    withDeleted: true,
+  });
 
-    if (exists) {
-      const conflictField =
-        exists.color === createDto.color ? 'color' : 'hexCode';
-      const conflictValue =
-        conflictField === 'color' ? createDto.color : createDto.hexCode;
+  if (deletedColor) {
+    await this.colorRepository.recover(deletedColor);
+    return instanceToPlain(deletedColor);
+  }
 
-      throw new BadRequestException(
-        `Color already exists with ${conflictField}: ${conflictValue}`,
-      );
-    }
+  const deletedHexCode = await this.colorRepository.findOne({
+    where: { hexCode: createDto.hexCode, deleted_at: Not(IsNull()) },
+    withDeleted: true,
+  });
+
+  if (deletedHexCode) {
+    await this.colorRepository.recover(deletedHexCode);
+    return instanceToPlain(deletedHexCode);
+  }
+ const [activeColor, activeHexCode] = await Promise.all([
+    this.colorRepository.findOne({
+      where: { color: createDto.color, deleted_at: IsNull() },
+    }),
+    this.colorRepository.findOne({
+      where: { hexCode: createDto.hexCode, deleted_at: IsNull() },
+    }),
+  ]);
+
+  if (activeColor) {
+    throw new BadRequestException(
+      `Color already exists with color: ${createDto.color}`,
+    );
+  }
+
+  if (activeHexCode) {
+    throw new BadRequestException(
+      `Color already exists with hexCode: ${createDto.hexCode}`,
+    );
+  }
 
     const color = this.colorRepository.create(createDto);
     const saved = await this.colorRepository.save(color);
@@ -82,10 +108,12 @@ export class ColorService {
   return instanceToPlain(saved);
 }
 
-  async remove(id: string) {
-    const color = await this.colorRepository.findOneBy({ id });
-    if (!color) throw new NotFoundException(`Color with id ${id} not found`);
-    await this.colorRepository.update(id, { deleted_at: new Date() });
-    return { message: `Color with id ${id} deleted successfully` };
-  }
+async delete(id: string): Promise<{ message: string }> {
+  const exists = await this.colorRepository.findOne({
+    where: { id, deleted_at: IsNull() },
+  });
+  if (!exists) throw new NotFoundException(`Color with id ${id} not found`);
+  await this.colorRepository.softDelete(id);
+  return { message: `Color with id ${id} deleted successfully` };
+}
 }

@@ -43,6 +43,6 @@ export class SizeController {
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.sizeService.remove(id);
+    return this.sizeService.delete(id);
   }
 }
