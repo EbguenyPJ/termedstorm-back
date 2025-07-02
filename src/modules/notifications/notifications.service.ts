@@ -179,7 +179,7 @@ export class NotificationsService {
         emailContext: {
           productName: product.name,
           stockLeft: variantSize.stock,
-          productUrl: `https://nivo.com/products/${product.slug}`,
+          productUrl: `https://nivoapp.netlify.app/shop/products/${product.slug}`,
           productImage: variantSize.variantProduct.image?.[0] || '',
         },
       });

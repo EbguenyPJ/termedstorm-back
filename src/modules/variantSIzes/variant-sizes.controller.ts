@@ -7,17 +7,22 @@ import {
   Delete,
   Put,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { VariantSizesService } from './variant-sizes.service';
 import { CreateVariantSizeDto } from './dto/create-variant-sizes.dto';
 import { UpdateVariantSizeDto } from './dto/update-variant-sizes.dto';
 import { ProductVariant } from '../productsVariant/entities/product-variant.entity';
 import { EntityManager } from 'typeorm';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('variant-sizes')
 export class VariantSizesController {
   constructor(private readonly variantSizesService: VariantSizesService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Body() createDto: CreateVariantSizeDto) {
     return this.variantSizesService.create(createDto);
@@ -33,6 +38,8 @@ export class VariantSizesController {
     return this.variantSizesService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -41,6 +48,8 @@ export class VariantSizesController {
     return this.variantSizesService.update(id, updateDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.variantSizesService.delete(id);

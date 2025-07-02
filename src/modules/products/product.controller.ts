@@ -26,6 +26,7 @@ import { Response } from 'express';import { ProductSearchService } from './searc
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { Employee } from '../users/entities/employee.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('products')
 export class ProductController {
@@ -36,8 +37,9 @@ export class ProductController {
     private readonly productSearchService: ProductSearchService,
   ) {}
 
-  @Post()
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
+  @Post()
   create(@Body() createDto: CreateProductDto, @GetUser() user: { userId: string }) {
     console.log('Empleado extraído del token:', user.userId);
     return this.productService.create(createDto, user.userId);
@@ -61,6 +63,8 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -69,6 +73,8 @@ export class ProductController {
     return this.productService.update(id, updateDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.delete(id);
