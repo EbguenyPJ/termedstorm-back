@@ -45,7 +45,11 @@ export class ChatGateway
 
   async handleConnection(client: AuthenticatedSocket) {
     const tenantSlug = client.handshake.auth?.tenantSlug; //aca leemos el payload de auth para obtener el token
-    const token = client.handshake.auth?.token;
+    // const token = client.handshake.auth?.token; //FIXME Nacho dijo que comentará esta linea
+
+    //NACHO
+    const cookies = client.handshake.headers.cookie;
+    const token = this.extractTokenFromCookie(cookies); //FIXME Para poder descomentar/colocar esta línea
 
     if (!tenantSlug || !token) {
       this.logger.error('Conexión rechazada: No se proporcionó tenantSlug.');
@@ -60,10 +64,6 @@ export class ChatGateway
       client.disconnect(true);
       return;
     }
-
-    //NACHO
-    // const cookies = client.handshake.headers.cookie;
-    // const token1 = this.extractTokenFromCookie(cookies);
 
     try {
       const secret =
