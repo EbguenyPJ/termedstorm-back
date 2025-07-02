@@ -38,6 +38,6 @@ export class ColorController {
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.colorService.remove(id);
+    return this.colorService.delete(id);
   }
 }

@@ -175,10 +175,10 @@ export class AuthService {
   ): Promise<User> {
     const { email, password } = loginDto;
 
-    const relations =
-      userType === 'employee'
-        ? { employee: { roles: true } }
-        : { client: true };
+const relations =
+  userType === 'employee'
+    ? { employee: { roles: true, user: true } }
+    : { client: { user: true } };
 
     const user = await this.getUserRepository().findOne({
       where: { email },
@@ -193,7 +193,7 @@ export class AuthService {
     
 
  //agrego
- console.log('LOGIN DEBUG: usuario encontrado:', user);
+//  console.log('LOGIN DEBUG: usuario encontrado:', user);
     if (
       !user ||
       (userType === 'employee' && !user.employee) ||
@@ -314,9 +314,9 @@ export class AuthService {
         await this.notificationsService.notifyWelcome(
           savedEmployee,
           'employee',
-          manager,
-        ); //Steven
-
+           manager,
+            { email: newUser.email, password: dto.password }, //Steven
+        );
         return savedEmployee.user;
 
         
@@ -332,7 +332,8 @@ export class AuthService {
           savedClient,
           'client',
           manager,
-        ); //Steven
+            { email: newUser.email, password: dto.password },//Steven
+        ); 
 
       return newUser;
     }

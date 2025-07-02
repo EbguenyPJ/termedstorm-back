@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { In, Not, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -258,13 +258,24 @@ export class ProductService {
   }
 
   async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.productRepository.findOneBy({ id });
-    if (!exists) {
+    const product = await this.productRepository.findOne({ 
+      where: { id, deleted_at: IsNull() },
+      relations: ['variants'],
+      });
+
+    if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
-    await this.productRepository.update(id, { deleted_at: new Date() });
-    return { message: `Product with ID ${id} deleted successfully` };
-  }
+    await Promise.all(
+    product.variants.map((variant) =>
+      this.variantService.delete(variant.id),
+    ),
+  );
+
+  await this.productRepository.softDelete(id);
+
+  return { message: `Product with ID ${id} deleted successfully` };
+}
 
   async findManyVariantsByIds(ids: string[]): Promise<ProductVariant[]> {
     if (!ids || ids.length === 0) {

@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { In, Repository, DataSource } from 'typeorm';
+import { In, Repository, DataSource, IsNull } from 'typeorm';
 import { SubCategory } from './entities/sub-category.entity';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
@@ -131,13 +131,15 @@ export class SubCategoryService {
     return { message: `SubCategory with id ${id} updated successfully` };
   }
 
-  async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.subCategoryRepository.findOne({ where: { id } });
-    if (!exists)
-      throw new NotFoundException(`SubCategory with id ${id} not found`);
-    await this.subCategoryRepository.softDelete(id);
-    return { message: `SubCategory with id ${id} deleted successfully` };
-  }
+async delete(id: string): Promise<{ message: string }> {
+  const exists = await this.subCategoryRepository.findOne({
+    where: { id, deleted_at: IsNull() },
+  });
+  if (!exists)
+    throw new NotFoundException(`SubCategory with id ${id} not found`);
+  await this.subCategoryRepository.softDelete(id);
+  return { message: `SubCategory with id ${id} deleted successfully` };
+}
 
     // NACHO
   async findBySlug(slug: string): Promise<SubCategory> {
