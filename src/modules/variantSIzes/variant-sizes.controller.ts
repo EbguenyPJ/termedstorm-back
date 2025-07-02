@@ -16,13 +16,16 @@ import { ProductVariant } from '../productsVariant/entities/product-variant.enti
 import { EntityManager } from 'typeorm';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('variant-sizes')
 export class VariantSizesController {
   constructor(private readonly variantSizesService: VariantSizesService) {}
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post()
   create(@Body() createDto: CreateVariantSizeDto) {
     return this.variantSizesService.create(createDto);
@@ -39,7 +42,8 @@ export class VariantSizesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -49,7 +53,8 @@ export class VariantSizesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.variantSizesService.delete(id);

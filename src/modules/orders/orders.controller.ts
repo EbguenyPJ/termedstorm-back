@@ -18,6 +18,7 @@ import { CreateCancellationDto } from '../cancellation/dto/create-cancellation.d
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { Employee } from '../users/entities/employee.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('orders')
 export class OrdersController {
@@ -25,6 +26,8 @@ export class OrdersController {
 
   constructor(private readonly ordersService: OrdersService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   createOrder(@Body() createOrderDto: CreateOrderDto) {
     return this.ordersService.processNewOrder(createOrderDto);
@@ -40,6 +43,8 @@ export class OrdersController {
     return this.ordersService.findAll();
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   updateOrder(
     @Param('id', ParseUUIDPipe) id: string,
@@ -48,8 +53,9 @@ export class OrdersController {
     return this.ordersService.update(id, updateOrderDto);
   }
 
-  @Delete(':id')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
+  @Delete(':id')
   cancelOrder(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() createCancellationDto: CreateCancellationDto,

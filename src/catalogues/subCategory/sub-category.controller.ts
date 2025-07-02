@@ -15,13 +15,16 @@ import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
 import { AutoAudit } from 'src/modules/auditModification/decorator/audit-log.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 
 @Controller('sub-categories')
 export class SubCategoryController {
   constructor(private readonly subCategoryService: SubCategoryService) {}
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post()
   create(@Body() dto: CreateSubCategoryDto) {
     return this.subCategoryService.create(dto);
@@ -38,7 +41,8 @@ export class SubCategoryController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -46,9 +50,10 @@ export class SubCategoryController {
   ) {
     return this.subCategoryService.update(id, dto);
   }
-
+  
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.subCategoryService.delete(id);

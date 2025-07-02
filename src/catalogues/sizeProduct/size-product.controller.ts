@@ -16,13 +16,16 @@ import { UpdateSizeDto } from './dto/update-size.dto';
 import { AutoAudit } from '../../modules/auditModification/decorator/audit-log.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 
 @Controller('sizes')
 export class SizeController {
   constructor(private readonly sizeService: SizeService) {}
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post()
   create(@Body() createDto: CreateSizeDto) {
     return this.sizeService.create(createDto);
@@ -39,7 +42,8 @@ export class SizeController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -49,7 +53,8 @@ export class SizeController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.sizeService.delete(id);

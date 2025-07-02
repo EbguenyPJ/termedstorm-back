@@ -14,6 +14,8 @@ import { CreateCancellationReasonDto } from './dto/create-cancellation-reason.dt
 import { UpdateCancellationReasonDto } from './dto/update-cancellation-reason.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 
 @Controller('cancellation-reasons')
 export class CancellationReasonController {
@@ -22,24 +24,32 @@ export class CancellationReasonController {
   ) {}
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post()
   create(@Body() dto: CreateCancellationReasonDto) {
     return this.cancellationReasonService.create(dto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Get()
   findAll() {
     return this.cancellationReasonService.findAll();
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.cancellationReasonService.findOne(id);
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -49,7 +59,8 @@ export class CancellationReasonController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.cancellationReasonService.delete(id);
