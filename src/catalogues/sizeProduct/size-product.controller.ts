@@ -18,7 +18,6 @@ import { AutoAudit } from '../../modules/auditModification/decorator/audit-log.d
 export class SizeController {
   constructor(private readonly sizeService: SizeService) {}
 
-  @AutoAudit()
   @Post()
   create(@Body() createDto: CreateSizeDto) {
     return this.sizeService.create(createDto);
@@ -44,6 +43,6 @@ export class SizeController {
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.sizeService.remove(id);
+    return this.sizeService.delete(id);
   }
 }

@@ -43,6 +43,6 @@ export class VariantSizesController {
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.variantSizesService.remove(id);
+    return this.variantSizesService.delete(id);
   }
 }

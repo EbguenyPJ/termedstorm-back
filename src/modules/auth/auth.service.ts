@@ -4,7 +4,8 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   Logger,
-  BadRequestException, // Excepción usada para la nueva validación
+  BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -80,10 +81,16 @@ export class AuthService {
   async validateAndLoginGoogleEmployee(googleUser: {
     email: string;
   }): Promise<string> {
+    
     const user = await this.getUserRepository().findOne({
       where: { email: googleUser.email },
       relations: { employee: { roles: true } },
+      withDeleted: true, 
     });
+
+    if (user && user.deletedAt) {
+      throw new ForbiddenException('This account has been locked. Please contact an administrator.');
+    }
 
     if (!user || !user.employee) {
       throw new UnauthorizedException(
@@ -108,10 +115,17 @@ export class AuthService {
       const userRepo = manager.getRepository(User);
       const clientRepo = manager.getRepository(Client);
 
+      
       let user = await userRepo.findOne({
         where: { email: googleUser.email },
         relations: { client: true },
+        withDeleted: true, 
       });
+      
+      if (user && user.deletedAt) {
+        throw new ForbiddenException('This account has been locked. Please contact an administrator.');
+      }
+
 
       if (user && !user.client) {
         throw new UnauthorizedException(
@@ -161,17 +175,25 @@ export class AuthService {
   ): Promise<User> {
     const { email, password } = loginDto;
 
-    const relations =
-      userType === 'employee'
-        ? { employee: { roles: true } }
-        : { client: true };
+const relations =
+  userType === 'employee'
+    ? { employee: { roles: true, user: true } }
+    : { client: { user: true } };
 
     const user = await this.getUserRepository().findOne({
       where: { email },
       relations,
+      withDeleted: true, // Se busca también en eliminados
     });
+
+    
+    if (user && user.deletedAt) {
+      throw new ForbiddenException('This account has been locked. Please contact an administrator.');
+    }
+    
+
  //agrego
- console.log('LOGIN DEBUG: usuario encontrado:', user);
+//  console.log('LOGIN DEBUG: usuario encontrado:', user);
     if (
       !user ||
       (userType === 'employee' && !user.employee) ||
@@ -225,7 +247,7 @@ export class AuthService {
     };
   }
 
-  // ▼▼▼ MÉTODO MODIFICADO CON PROTECCIÓN DE ROLES ▼▼▼
+
   private async registerUserWithRole(
     dto: RegisterEmployeeDto | RegisterClientDto,
     role: 'employee' | 'client',
@@ -234,9 +256,18 @@ export class AuthService {
 
     return dataSource.transaction(async (manager) => {
       const userRepo = manager.getRepository(User);
-      const existingUser = await userRepo.findOneBy({ email: dto.email });
+      
+      const existingUser = await userRepo.findOne({
+          where: { email: dto.email },
+          withDeleted: true, // Se busca también en eliminados
+      });
 
       if (existingUser) {
+        
+        if (existingUser.deletedAt) {
+          throw new ForbiddenException('This account has been locked. Please contact an administrator.');
+        }
+        
         throw new ConflictException('Email already registered');
       }
 
@@ -260,8 +291,7 @@ export class AuthService {
             throw new BadRequestException('One or more roles are invalid');
           }
 
-          // <--- NUEVA VALIDACIÓN AÑADIDA ---
-          // Comprueba si alguno de los roles solicitados es un rol protegido.
+          
           const forbiddenRoles = ['ADMIN', 'SUPERADMIN'];
           const hasForbiddenRole = existingRoles.some(role => 
             forbiddenRoles.includes(role.name.toUpperCase())
@@ -270,7 +300,6 @@ export class AuthService {
           if (hasForbiddenRole) {
             throw new BadRequestException('Assigning ADMIN or SUPERADMIN roles is not permitted.');
           }
-          // <--- FIN DE LA NUEVA VALIDACIÓN ---
 
           rolesToAssign = existingRoles;
         }
@@ -285,9 +314,9 @@ export class AuthService {
         await this.notificationsService.notifyWelcome(
           savedEmployee,
           'employee',
-          manager,
-        ); //Steven
-
+           manager,
+            { email: newUser.email, password: dto.password }, //Steven
+        );
         return savedEmployee.user;
 
         
@@ -303,7 +332,8 @@ export class AuthService {
           savedClient,
           'client',
           manager,
-        ); //Steven
+            { email: newUser.email, password: dto.password },//Steven
+        ); 
 
       return newUser;
     }

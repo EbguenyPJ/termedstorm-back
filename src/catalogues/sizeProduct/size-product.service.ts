@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 //import { InjectRepository } from '@nestjs/typeorm';
 import { Size } from './entities/size-product.entity';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, IsNull, Not } from 'typeorm';
 import { CreateSizeDto } from './dto/create-size.dto';
 import { UpdateSizeDto } from './dto/update-size.dto';
 import { instanceToPlain } from 'class-transformer';
@@ -20,17 +20,29 @@ export class SizeService {
   ) {}
 
   async create(createDto: CreateSizeDto): Promise<any> {
-    const existing = await this.sizeRepository.findOne({
-      where: {
-        size_us: createDto.size_us,
-        size_eur: createDto.size_eur,
-        size_cm: createDto.size_cm,
-      },
-    });
+    const whereClause = {
+    size_us: createDto.size_us,
+    size_eur: createDto.size_eur,
+    size_cm: createDto.size_cm,
+  };
 
-    if (existing) {
-      throw new BadRequestException(`This size already exists`);
-    }
+    const deleted = await this.sizeRepository.findOne({
+    where: { ...whereClause, deleted_at: Not(IsNull()) },
+    withDeleted: true,
+  });
+
+  if (deleted) {
+    await this.sizeRepository.recover(deleted);
+    return instanceToPlain(deleted);
+  }
+
+  const existing = await this.sizeRepository.findOne({
+    where: { ...whereClause, deleted_at: IsNull() },
+  });
+
+  if (existing) {
+    throw new BadRequestException(`This size already exists`);
+  }
 
     const size = this.sizeRepository.create(createDto);
     const saved = await this.sizeRepository.save(size);
@@ -72,13 +84,12 @@ export class SizeService {
     return { message: `Size with id ${id} updated successfully` };
   }
 
-  async remove(id: string): Promise<any> {
-    const size = await this.sizeRepository.findOne({ where: { id } });
-    if (!size) {
-      throw new NotFoundException(`Size with id ${id} not found`);
-    }
-
-    await this.sizeRepository.softDelete(id);
-    return { message: `Size with id ${id} deleted successfully` };
-  }
+async delete(id: string): Promise<{ message: string }> {
+  const exists = await this.sizeRepository.findOne({
+    where: { id, deleted_at: IsNull() },
+  });
+  if (!exists) throw new NotFoundException(`Size with id ${id} not found`);
+  await this.sizeRepository.softDelete(id);
+  return { message: `Size with id ${id} deleted successfully` };
+}
 }

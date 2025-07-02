@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { Brand } from './entities/brand.entity';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
@@ -122,11 +122,11 @@ export class BrandService {
   }
 
   async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.brandRepository.findOne({
-      where: { id },
-    });
-    if (!exists) throw new NotFoundException(`Brand with id ${id} not found`);
-    await this.brandRepository.softDelete(id);
-    return { message: `Brand with id ${id} deactivated successfully` };
-  }
+  const exists = await this.brandRepository.findOne({
+    where: { id, deleted_at: IsNull() },
+  });
+  if (!exists) throw new NotFoundException(`Brand with id ${id} not found`);
+  await this.brandRepository.softDelete(id);
+  return { message: `Brand with id ${id} deleted successfully` };
+}
 }

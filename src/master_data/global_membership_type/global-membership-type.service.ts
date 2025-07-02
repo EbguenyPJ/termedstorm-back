@@ -28,9 +28,7 @@ export class GlobalMembershipTypeService {
       where: { id },
     });
     if (!type) {
-      throw new NotFoundException(
-        `Global Membership Type with ID "${id}" not found`,
-      );
+      throw new NotFoundException(`Membresia con ID "${id}" no encontrada`);
     }
     return type;
   }
@@ -41,15 +39,13 @@ export class GlobalMembershipTypeService {
   ): Promise<GlobalMembershipType | null> {
     const type = await this.findOne(id);
     await this.globalMembershipTypeRepository.update(id, updateDto);
-    return this.globalMembershipTypeRepository.findOne({ where: { id } }); 
+    return this.globalMembershipTypeRepository.findOne({ where: { id } });
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.globalMembershipTypeRepository.delete(id);
+    const result = await this.globalMembershipTypeRepository.softDelete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(
-        `Global Membership Type with ID "${id}" not found`,
-      );
+      throw new NotFoundException(`Membresia con ID "${id}" no encontrada`);
     }
   }
 }

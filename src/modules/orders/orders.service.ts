@@ -23,6 +23,7 @@ import { InjectTenantRepository } from '../../common/typeorm-tenant-repository/t
 import { getTenantContext } from '../../common/context/tenant-context';
 import { PaymentMethod } from './payment-method.enum';
 import { NotificationsService } from '../notifications/notifications.service'; //Steven
+import { IdConverterService } from 'src/common/services/id-converter.service'; // [x] Aquí importo el service
 
 @Injectable() // <-- Añadir esto explícitamente
 export class OrdersService {
@@ -35,6 +36,7 @@ export class OrdersService {
     private readonly productService: ProductService,
     private readonly cancellationService: CancellationService,
     private readonly notificationsService: NotificationsService,
+    private readonly idConverter: IdConverterService, //[x] Aquó lo inyecto
   ) {
     this.logger = new Logger(OrdersService.name);
     this.instanceId = Math.random().toString(36).substring(2, 9); // <-- ASIGNAMOS UN ID ÚNICO
@@ -263,14 +265,21 @@ export class OrdersService {
       paymentMethod,
     } = data;
 
+    //[x] Aquí llamo al converter service(le paso el uuid de user[employeeId] y me devuelve su uuid de employee el cual almaceno en [trueEmployeeId])
+    const trueEmployeeId =
+      await this.idConverter.getEmployeeIdFromUserId(employeeId);
+
     const employee = await entityManager.findOneBy(Employee, {
-      id: employeeId,
+      id: trueEmployeeId, //[x] Aqui paso el id correspondiente a la tabla de employees en lugar de pasarle el id correspondiente a la tabla de users
     });
     if (!employee) {
       throw new NotFoundException(
         `Empleado con ID ${employeeId} no encontrado.`,
       );
     }
+
+    //[x] Aqui agregue un logger por las dudas (El servicio tambien tiene sus loggers auxiliares)
+    this.logger.log('Employee data:', employee);
 
     let client: Client | null = null;
     if (clientEmail) {
@@ -333,7 +342,7 @@ export class OrdersService {
       if (updatedVariantSize) {
         await this.notificationsService.notifyIfLowStock(updatedVariantSize);
       }
-    // Steven
+      // Steven
 
       variantSizeRecords.push(variantSize);
     }
@@ -479,16 +488,6 @@ export class OrdersService {
     });
   }
 }
-
-
-
-
-
-
-
-
-
-
 
 // import {
 //   Injectable,

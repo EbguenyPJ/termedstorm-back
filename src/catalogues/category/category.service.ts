@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Not, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -121,15 +121,14 @@ export class CategoryService {
     return { message: `Category with id ${id} updated successfully` };
   }
 
-  async delete(id: string): Promise<{ message: string }> {
-    const exists = await this.categoryRepository.findOne({
-      where: { id },
-    });
-    if (!exists)
-      throw new NotFoundException(`Category with id ${id} not found`);
-    await this.categoryRepository.softDelete(id);
-    return { message: `Category with id ${id} deactivated successfully` };
-  }
+async delete(id: string): Promise<{ message: string }> {
+  const exists = await this.categoryRepository.findOne({
+    where: { id, deleted_at: IsNull() },
+  });
+  if (!exists) throw new NotFoundException(`Category with id ${id} not found`);
+  await this.categoryRepository.softDelete(id);
+  return { message: `Category with id ${id} deleted successfully` };
+}
 
   // NACHO
   async findBySlug(slug: string): Promise<Category> {
