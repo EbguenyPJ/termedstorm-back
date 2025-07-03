@@ -32,8 +32,8 @@ import { ChatModule } from '../websocket-chat/chat.module';
       transport: {
         service: 'gmail',
         auth: {
-          user: process.env.MAIL_USER,
-          pass: process.env.MAIL_PASS,
+          user: process.env.MAIL_NOTI_USER,
+          pass: process.env.MAIL_NOTI_PASS,
         },
       },
       defaults: {
