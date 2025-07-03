@@ -4,7 +4,6 @@ import { RoleSeeder } from './role.seeder';
 import { RolesService } from './roles.service';
 import { RolesController } from './roles.controller';
 import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant-repository.provider';
-TenantTypeOrmModule
 
 @Module({
   imports: [TenantTypeOrmModule.forFeature([Role])],

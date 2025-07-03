@@ -14,6 +14,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { GoogleClientStrategy } from './strategies/google-client.strategy';
 import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant-repository.provider';
 import { NotificationsModule } from '../notifications/notifications.module'; //Steven
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 
 @Module({
@@ -33,6 +35,11 @@ import { NotificationsModule } from '../notifications/notifications.module'; //S
     NotificationsModule, //Steven
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, GoogleClientStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, GoogleClientStrategy, AuthGuard, RolesGuard,],
+  exports: [
+    AuthService,
+    AuthGuard,
+    RolesGuard,
+  ],
 })
 export class AuthModule {}
