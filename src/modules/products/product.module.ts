@@ -13,10 +13,12 @@ import { ProductVariantModule } from '../productsVariant/product-variant.module'
 import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant-repository.provider';
 import { ProductsCsvService } from './csv/product-csv.service';
 import { ProductSearchService } from './searchProducts.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [TenantTypeOrmModule.forFeature([Product, Category, SubCategory, Brand, Color, ProductVariant, VariantSize]),
-ProductVariantModule
+ProductVariantModule,
+AuthModule
 ],
   providers: [ProductService, ProductsCsvService, ProductSearchService],
   controllers: [ProductController],

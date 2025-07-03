@@ -22,31 +22,44 @@ import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { ProductsCsvService } from './csv/product-csv.service';
-import { Response } from 'express';import { ProductSearchService } from './searchProducts.service';
+import { Response } from 'express';
+import { ProductSearchService } from './searchProducts.service';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { Employee } from '../users/entities/employee.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('products')
 export class ProductController {
   constructor(
-    
     private readonly productService: ProductService,
     private readonly csvService: ProductsCsvService,
     private readonly productSearchService: ProductSearchService,
   ) {}
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post()
-  @UseGuards(AuthGuard('jwt'))
-  create(@Body() createDto: CreateProductDto, @GetUser() user: { userId: string }) {
+  create(
+    @Body() createDto: CreateProductDto,
+    @GetUser() user: { userId: string },
+  ) {
     console.log('Empleado extraído del token:', user.userId);
     return this.productService.create(createDto, user.userId);
   }
 
   @Get('search')
-  async searchProducts(@Query('query') query: string, @Query('color') color?: string) {
+  async searchProducts(
+    @Query('query') query: string,
+    @Query('color') color?: string,
+  ) {
     if (!query || query.trim() === '') {
-      throw new BadRequestException('El parámetro "query" es obligatorio para la búsqueda.');
+      throw new BadRequestException(
+        'El parámetro "query" es obligatorio para la búsqueda.',
+      );
     }
     return this.productSearchService.searchProducts(query, color);
   }
@@ -61,6 +74,9 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -69,6 +85,9 @@ export class ProductController {
     return this.productService.update(id, updateDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.delete(id);
@@ -86,12 +105,18 @@ export class ProductController {
     );
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Get('csv/download-prices')
   async downloadPricesCsv(@Res() res: Response) {
     const filePath = await this.csvService.exportPricesToCsv();
     res.download(filePath, 'productos-precios.csv');
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post('csv/update-prices')
   @UseInterceptors(
     FileInterceptor('file', {
