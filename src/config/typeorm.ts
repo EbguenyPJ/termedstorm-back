@@ -23,9 +23,9 @@ export const tenantDbConfigTemplate: PostgresConnectionOptions = {
   migrations: ['dist/migrations/*{.ts,.js}'],
   // autoLoadEntities: true,
   dropSchema: false,
-  synchronize:
-    process.env.NODE_ENV !== 'production' &&
-    process.env.ENABLE_TENANT_SYNC === 'true',
+  synchronize: false,
+  // process.env.NODE_ENV !== 'production' &&
+  // process.env.ENABLE_TENANT_SYNC === 'true',
 };
 
 //HACK --- Configuración para la Base de Datos MAESTRA --- Vamos a ZzzZ ?
