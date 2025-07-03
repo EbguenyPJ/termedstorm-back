@@ -9,25 +9,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   app.enableCors({
     origin: 'https://nivoapp.netlify.app',
-    // origin: ['https://nivoapp.vercel.app', 'http://localhost:4000'], //localhost
     credentials: true,
   });
 
-  // const allowedOrigins = [
-  //   'https://nivoapp.vercel.app/',
-  //   'http://localhost:3000/',
-  // ];
-
-  // app.enableCors({
-  //   origin: (origin, callback) => {
-  //     if (!origin || allowedOrigins.includes(origin)) {
-  //       callback(null, true);
-  //     } else {
-  //       callback(new Error('Not allowed by CORS'));
-  //     }
-  //   },
-  //   credentials: true,
-  // });TODO Cambiar por opcion de whitelist desde .env
   app.use(loggerGlobal);
   app.useGlobalPipes(
     new ValidationPipe({

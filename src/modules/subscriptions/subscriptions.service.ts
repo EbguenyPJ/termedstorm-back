@@ -47,8 +47,8 @@ export class SubscriptionsService {
       customerName,
     );
 
-    const successUrl = 'http://localhost:4000/subscripton_payment/success';
-    const cancelUrl = 'http://localhost:4000/subscripton_payment/cancelled';
+    const successUrl = 'https://nivoapp.netlify.app/subscripton_payment/success';
+    const cancelUrl = 'https://nivoapp.netlify.app/subscripton_payment/cancelled';
 
     const checkoutSession =
       await this.stripeService.createSubscriptionCheckoutSession(

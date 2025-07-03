@@ -175,10 +175,11 @@ export class AuthService {
   ): Promise<User> {
     const { email, password } = loginDto;
 
-const relations =
-  userType === 'employee'
-    ? { employee: { roles: true, user: true } }
-    : { client: { user: true } };
+    const relations =
+      userType === 'employee'
+        ? { employee: { roles: true, user: true } } // STEVEN Y NACHO
+        : { client: true };
+
 
     const user = await this.getUserRepository().findOne({
       where: { email },

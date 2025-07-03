@@ -24,14 +24,15 @@ interface AuthenticatedSocket extends Socket {
 
 @WebSocketGateway(8080, {
   cors: {
-    origin: '*', //'http://localhost:4000',
+    origin: 'https://nivoapp.netlify.app', //'',
     credentials: true,
   },
 })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  @WebSocketServer() server: Server;
+  // @WebSocketServer() server: Server;
+  @WebSocketServer() public server: Server; // NACHO
   private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
@@ -45,11 +46,14 @@ export class ChatGateway
 
   async handleConnection(client: AuthenticatedSocket) {
     const tenantSlug = client.handshake.auth?.tenantSlug; //aca leemos el payload de auth para obtener el token
-    // const token = client.handshake.auth?.token; //FIXME Nacho dijo que comentará esta linea
+// const token = client.handshake.auth?.token; //FIXME Nacho dijo que comentará esta linea
 
     //NACHO
     const cookies = client.handshake.headers.cookie;
     const token = this.extractTokenFromCookie(cookies); //FIXME Para poder descomentar/colocar esta línea
+
+
+
 
     if (!tenantSlug || !token) {
       this.logger.error('Conexión rechazada: No se proporcionó tenantSlug.');
