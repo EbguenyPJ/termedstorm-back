@@ -167,8 +167,8 @@ export class OrdersService {
     const session = await this.stripeService.createCheckoutSession(
       lineItems,
       metadata,
-      'https://nivoapp.vercel.app/cart_payment/success',
-      'https://nivoapp.vercel.app/cart_payment/cancelled',
+      'https://nivoapp.netlify.app/cart_payment/success',
+      'https://nivoapp.netlify.app/cart_payment/cancelled',
       stripeCustomer.id,
     );
 
