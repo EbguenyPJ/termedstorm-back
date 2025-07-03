@@ -155,9 +155,9 @@ export class TenantConnectionService implements OnModuleDestroy {
         Todo,
         Customer,
       ],
-      synchronize:
-        process.env.NODE_ENV !== 'production' &&
-        process.env.ENABLE_TENANT_SYNC === 'true',
+      synchronize: false,
+      // process.env.NODE_ENV !== 'production' &&
+      // process.env.ENABLE_TENANT_SYNC === 'true',
     };
 
     //% Crear e inicializar la nueva instancia de DataSource
