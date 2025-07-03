@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductVariant } from './entities/product-variant.entity';
 import { ProductVariantService } from './product-variant.service';
 import { ProductVariantController } from './product-variant.controller';
@@ -12,10 +11,18 @@ import { TenantTypeOrmModule } from 'src/common/typeorm-tenant-repository/tenant
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TenantTypeOrmModule.forFeature([ProductVariant, Size, Color, Product, VariantSize]),
-AuthModule],
+  imports: [
+    TenantTypeOrmModule.forFeature([
+      ProductVariant,
+      Size,
+      Color,
+      Product,
+      VariantSize,
+    ]),
+    AuthModule,
+  ],
   controllers: [ProductVariantController],
   providers: [ProductVariantService, VariantSizesService],
-  exports: [ProductVariantService]
+  exports: [ProductVariantService],
 })
 export class ProductVariantModule {}
