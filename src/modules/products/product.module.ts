@@ -1,7 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProductService } from '../products/product.service';
 import { ProductController } from './product.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Category } from 'src/catalogues/category/entities/category.entity';
 import { SubCategory } from 'src/catalogues/subCategory/entities/sub-category.entity';
@@ -16,12 +15,21 @@ import { ProductSearchService } from './searchProducts.service';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TenantTypeOrmModule.forFeature([Product, Category, SubCategory, Brand, Color, ProductVariant, VariantSize]),
-ProductVariantModule,
-AuthModule
-],
+  imports: [
+    TenantTypeOrmModule.forFeature([
+      Product,
+      Category,
+      SubCategory,
+      Brand,
+      Color,
+      ProductVariant,
+      VariantSize,
+    ]),
+    ProductVariantModule,
+    forwardRef(() => AuthModule),
+  ],
   providers: [ProductService, ProductsCsvService, ProductSearchService],
   controllers: [ProductController],
-  exports: [ProductService]
+  exports: [ProductService],
 })
 export class ProductModule {}

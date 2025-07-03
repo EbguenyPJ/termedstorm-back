@@ -11,15 +11,14 @@ import { CancellationModule } from '../cancellation/cancellation.module';
 import { TenantTypeOrmModule } from '../../common/typeorm-tenant-repository/tenant-repository.provider';
 import { NotificationsModule } from '../notifications/notifications.module';
 
-
 @Module({
   imports: [
     forwardRef(() => StripeModule),
     TenantTypeOrmModule.forFeature([Order, OrderDetail]),
     SubscriptionsModule,
-    ProductModule,
     CancellationModule,
     forwardRef(() => NotificationsModule),
+    forwardRef(() => ProductModule),
   ],
   controllers: [OrdersController],
   providers: [
@@ -28,7 +27,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       useClass: OrdersService,
       scope: Scope.REQUEST, // <-- ¡CAMBIO CRÍTICO AQUÍ!
     },
-],
+  ],
   exports: [OrdersService],
 })
 export class OrdersModule {}

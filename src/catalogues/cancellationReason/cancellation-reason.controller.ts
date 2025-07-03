@@ -25,7 +25,7 @@ export class CancellationReasonController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  // @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post()
   create(@Body() dto: CreateCancellationReasonDto) {
     return this.cancellationReasonService.create(dto);
@@ -33,7 +33,7 @@ export class CancellationReasonController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  // @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Get()
   findAll() {
     return this.cancellationReasonService.findAll();
@@ -41,7 +41,7 @@ export class CancellationReasonController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  // @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.cancellationReasonService.findOne(id);
@@ -49,7 +49,7 @@ export class CancellationReasonController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  // @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -60,7 +60,7 @@ export class CancellationReasonController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  // @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.cancellationReasonService.delete(id);

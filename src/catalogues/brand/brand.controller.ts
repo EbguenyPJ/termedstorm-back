@@ -12,7 +12,6 @@ import {
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
-import { AutoAudit } from 'src/modules/auditModification/decorator/audit-log.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
@@ -22,9 +21,9 @@ import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 export class BrandController {
   constructor(private readonly brandService: BrandService) {}
 
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Post()
   create(@Body() dto: CreateBrandDto) {
     return this.brandService.create(dto);
@@ -40,9 +39,9 @@ export class BrandController {
     return this.brandService.findOne(id);
   }
 
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -51,9 +50,9 @@ export class BrandController {
     return this.brandService.update(id, dto);
   }
 
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.brandService.delete(id);

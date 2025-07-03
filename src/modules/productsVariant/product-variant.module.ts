@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProductVariant } from './entities/product-variant.entity';
 import { ProductVariantService } from './product-variant.service';
 import { ProductVariantController } from './product-variant.controller';
@@ -19,7 +19,7 @@ import { AuthModule } from '../auth/auth.module';
       Product,
       VariantSize,
     ]),
-    AuthModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [ProductVariantController],
   providers: [ProductVariantService, VariantSizesService],

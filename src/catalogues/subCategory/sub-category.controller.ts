@@ -12,7 +12,6 @@ import {
 import { SubCategoryService } from './sub-category.service';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
-import { AutoAudit } from 'src/modules/auditModification/decorator/audit-log.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
@@ -50,7 +49,7 @@ export class SubCategoryController {
   ) {
     return this.subCategoryService.update(id, dto);
   }
-  
+
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')

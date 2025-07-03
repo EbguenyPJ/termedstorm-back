@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -17,7 +17,6 @@ import { NotificationsModule } from '../notifications/notifications.module'; //S
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 
-
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -32,14 +31,17 @@ import { RolesGuard } from './guards/roles.guard';
       }),
     }),
     TenantTypeOrmModule.forFeature([User, Employee, Client, Role]),
-    NotificationsModule, //Steven
+    forwardRef(() => NotificationsModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, GoogleClientStrategy, AuthGuard, RolesGuard,],
-  exports: [
+  providers: [
     AuthService,
+    JwtStrategy,
+    GoogleStrategy,
+    GoogleClientStrategy,
     AuthGuard,
     RolesGuard,
   ],
+  exports: [AuthService, AuthGuard, RolesGuard],
 })
 export class AuthModule {}

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 //import { TypeOrmModule } from '@nestjs/typeorm';
 import { CancellationReasonService } from './cancellation-reason.service';
 import { CancellationReasonController } from './cancellation-reason.controller';
@@ -7,8 +7,10 @@ import { TenantTypeOrmModule } from '../../common/typeorm-tenant-repository/tena
 import { AuthModule } from 'src/modules/auth/auth.module';
 
 @Module({
-  imports: [TenantTypeOrmModule.forFeature([CancellationReason]),
-AuthModule],
+  imports: [
+    TenantTypeOrmModule.forFeature([CancellationReason]),
+    forwardRef(() => AuthModule),
+  ],
   providers: [CancellationReasonService],
   controllers: [CancellationReasonController],
   exports: [CancellationReasonService],
