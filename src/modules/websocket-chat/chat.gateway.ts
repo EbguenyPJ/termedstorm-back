@@ -24,7 +24,7 @@ interface AuthenticatedSocket extends Socket {
 
 @WebSocketGateway(8080, {
   cors: {
-    origin: 'https://nivoapp.netlify.app', //'',
+    origin: 'https://termedstorm-front.vercel.app', //'',
     credentials: true,
   },
 })
