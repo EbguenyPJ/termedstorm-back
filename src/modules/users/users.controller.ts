@@ -16,35 +16,32 @@ import { AuthGuard } from '@nestjs/passport';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Delete(':id')
   async softDelete(@Param('id', ParseUUIDPipe) id: string) {
     await this.usersService.softDeleteUser(id);
     return {
       statusCode: 200,
-      message: 'The user account has been successfully locked.', 
+      message: 'The user account has been successfully locked.',
     };
   }
 
-
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Get('deleted')
   async findDeleted() {
     return this.usersService.findDeletedUsers();
   }
 
-
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Patch(':id/restore')
   async restore(@Param('id', ParseUUIDPipe) id: string) {
     await this.usersService.restoreUser(id);
     return {
       statusCode: 200,
-      message: 'The user account has been successfully restored.', 
+      message: 'The user account has been successfully restored.',
     };
   }
 }

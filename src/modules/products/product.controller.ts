@@ -40,7 +40,7 @@ export class ProductController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Post()
   create(
     @Body() createDto: CreateProductDto,
@@ -75,7 +75,7 @@ export class ProductController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -86,7 +86,7 @@ export class ProductController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.delete(id);
@@ -106,7 +106,7 @@ export class ProductController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Get('csv/download-prices')
   async downloadPricesCsv(@Res() res: Response) {
     const filePath = await this.csvService.exportPricesToCsv();
@@ -115,7 +115,7 @@ export class ProductController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Post('csv/update-prices')
   @UseInterceptors(
     FileInterceptor('file', {

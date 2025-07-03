@@ -17,7 +17,7 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { TenantConnectionService } from '../../common/tenant-connection/tenant-connection.service';
 import { User } from 'src/modules/users/entities/user.entity';
 //! sistema de autorización para admins globales
-// import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 // import { Role } from 'src/modules/roles/entities/role.entity';
 // import { UseGuards } from '@nestjs/common';
 // import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
@@ -32,26 +32,26 @@ export class CustomerController {
   ) {}
 
   @Post()
-  // @Roles(Role.SuperAdmin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.create(createCustomerDto);
   }
 
   @Get()
-  // @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   findAll() {
     return this.customerService.findAll();
   }
 
   @Get(':id')
-  // @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   findOne(@Param('id') id: string) {
     return this.customerService.findOne(id);
   }
 
   @Patch(':id')
-  // @Roles(Role.SuperAdmin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   update(
     @Param('id') id: string,
     @Body() updateCustomerDto: UpdateCustomerDto,
@@ -60,7 +60,7 @@ export class CustomerController {
   }
 
   @Delete(':id')
-  // @Roles(Role.SuperAdmin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.customerService.remove(id);
@@ -74,7 +74,9 @@ export class CustomerController {
       //TODO consulta simple de prueba a una tabla del tenant
       const userRepository = dataSource.getRepository(User); //FIXME Revisar importación de user en caso de ser necesario
       const userCount = await userRepository.count();
-      return { message: `Successfully connected to tenant ${id}. User count: ${userCount}` };
+      return {
+        message: `Successfully connected to tenant ${id}. User count: ${userCount}`,
+      };
       // return { message: `Successfully connected to tenant ${id}.` };
     } catch (error) {
       console.error(error);

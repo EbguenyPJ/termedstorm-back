@@ -23,7 +23,7 @@ export class SubCategoryController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Post()
   create(@Body() dto: CreateSubCategoryDto) {
     return this.subCategoryService.create(dto);
@@ -41,7 +41,7 @@ export class SubCategoryController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -52,7 +52,7 @@ export class SubCategoryController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.subCategoryService.delete(id);

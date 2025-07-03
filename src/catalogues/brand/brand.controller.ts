@@ -23,7 +23,7 @@ export class BrandController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Post()
   create(@Body() dto: CreateBrandDto) {
     return this.brandService.create(dto);
@@ -41,7 +41,7 @@ export class BrandController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -52,7 +52,7 @@ export class BrandController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.brandService.delete(id);

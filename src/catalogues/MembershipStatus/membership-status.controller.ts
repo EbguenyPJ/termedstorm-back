@@ -25,7 +25,7 @@ export class MembershipStatusController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Post()
   create(@Body() dto: CreateMembershipStatusDto) {
     return this.membershipStatusService.create(dto);
@@ -43,7 +43,7 @@ export class MembershipStatusController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -54,7 +54,7 @@ export class MembershipStatusController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER')
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.membershipStatusService.delete(id);

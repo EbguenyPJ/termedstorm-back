@@ -13,7 +13,7 @@ import { GlobalMembershipTypeService } from './global-membership-type.service';
 import { CreateGlobalMembershipTypeDto } from './dto/create-global-membership-type.dto';
 import { UpdateGlobalMembershipTypeDto } from './dto/update-global-membership-type.dto';
 //! admins globales
-// import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 // import { Role } from 'src/modules/roles/entities/role.entity';
 // import { UseGuards } from '@nestjs/common';
 // import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
@@ -26,26 +26,26 @@ export class GlobalMembershipTypeController {
   ) {}
 
   @Post()
-  // @Roles(Role.SuperAdmin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createDto: CreateGlobalMembershipTypeDto) {
     return this.globalMembershipTypeService.create(createDto);
   }
 
   @Get()
-  // @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   findAll() {
     return this.globalMembershipTypeService.findAll();
   }
 
   @Get(':id')
-  // @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   findOne(@Param('id') id: string) {
     return this.globalMembershipTypeService.findOne(id);
   }
 
   @Patch(':id')
-  // @Roles(Role.SuperAdmin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   update(
     @Param('id') id: string,
     @Body() updateDto: UpdateGlobalMembershipTypeDto,
@@ -54,7 +54,7 @@ export class GlobalMembershipTypeController {
   }
 
   @Delete(':id')
-  // @Roles(Role.SuperAdmin)
+  @Roles('ADMIN', 'SUPERADMIN', 'MANAGER', 'CASHIER')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.globalMembershipTypeService.remove(id);
