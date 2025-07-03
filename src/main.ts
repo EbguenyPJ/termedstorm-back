@@ -12,6 +12,7 @@ async function bootstrap() {
     // origin: 'http://localhost:4000',     //BUG Para Local
     credentials: true,
   });
+  
 
   app.use(loggerGlobal);
   app.useGlobalPipes(
