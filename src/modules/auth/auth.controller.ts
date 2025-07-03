@@ -70,15 +70,13 @@ export class AuthController {
       maxAge: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 días
     });
     response.redirect(
-      'http://localhost:3000/auth/success?from=google&type=client',
+      'https://nivoapp.netlify.app/auth/success?from=google&type=client',
     );
   }
 
   //& --- RUTAS DE EMPLEADOS ---
 
   @Post('employee/register')
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
-  //@Roles('ADMIN')
   @HttpCode(HttpStatus.CREATED)
   registerEmployee(
     @Body(new ValidationPipe()) registerEmployeeDto: RegisterEmployeeDto,
@@ -127,16 +125,9 @@ export class AuthController {
       maxAge: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 días
     });
     response.redirect(
-      'http:/localhost:3000/auth/success?from=google&type=employee',
+      'https://nivoapp.netlify.app/auth/success?from=google&type=employee',
     );
   }
-
-  //% 1. Método login con jwt Token
-  // @Post('login')
-  // @HttpCode(HttpStatus.OK)
-  // login(@Body(new ValidationPipe()) loginDto: LoginDto) {
-  //   return this.authService.login(loginDto);
-  // }
 
   //& --- RUTA DE LOGOUT ---
   @Post('logout')

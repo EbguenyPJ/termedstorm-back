@@ -167,8 +167,8 @@ export class OrdersService {
     const session = await this.stripeService.createCheckoutSession(
       lineItems,
       metadata,
-      'http://localhost:4000/cart_payment/success',
-      'http://localhost:4000/cart_payment/cancelled',
+      'https://nivoapp.netlify.app/cart_payment/success',
+      'https://nivoapp.netlify.app/cart_payment/cancelled',
       stripeCustomer.id,
     );
 
@@ -414,6 +414,26 @@ export class OrdersService {
       },
     });
   }
+
+
+  // NACHO
+  async findByEmployee(employeeId: string): Promise<Order[]> {
+  const orderRepository = this.dataSource.manager.getRepository(Order);
+
+  const orders = await orderRepository.find({
+    where: { employee: { id: employeeId } },
+    relations: {
+      client: { user: true },
+    },
+    order: {
+      date: 'DESC',
+      time: 'DESC',
+    },
+  });
+
+  return orders;
+}
+
 
   async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
     const orderRepository = this.dataSource.manager.getRepository(Order);
