@@ -167,8 +167,8 @@ export class OrdersService {
     const session = await this.stripeService.createCheckoutSession(
       lineItems,
       metadata,
-      'https://termedstorm-front.vercel.app/cart_payment/success',
-      'https://termedstorm-front.vercel.app/cart_payment/cancelled',
+      'http://localhost:4000/cart_payment/success',
+      'http://localhost:4000/cart_payment/cancelled',
       stripeCustomer.id,
     );
 

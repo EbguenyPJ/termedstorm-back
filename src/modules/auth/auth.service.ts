@@ -20,10 +20,8 @@ import { Client } from '../users/entities/client.entity';
 import { Role } from '../roles/entities/role.entity';
 import { TenantConnectionService } from '../../common/tenant-connection/tenant-connection.service';
 import { getTenantContext } from '../../common/context/tenant-context';
-import { NotificationsService } from '../notifications/notifications.service'; //Steven
+// import { NotificationsService } from '../notifications/notifications.service'; //Steven
 import { instanceToPlain } from 'class-transformer';
-
-
 
 @Injectable()
 export class AuthService {
@@ -32,7 +30,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly tenantConnectionService: TenantConnectionService,
-    private readonly notificationsService: NotificationsService, //Steven
+    // private readonly notificationsService: NotificationsService, //Steven
   ) {}
 
   // --- 🔧 Métodos utilitarios para obtener repositorios dinámicos ---
@@ -81,15 +79,16 @@ export class AuthService {
   async validateAndLoginGoogleEmployee(googleUser: {
     email: string;
   }): Promise<string> {
-    
     const user = await this.getUserRepository().findOne({
       where: { email: googleUser.email },
       relations: { employee: { roles: true } },
-      withDeleted: true, 
+      withDeleted: true,
     });
 
     if (user && user.deletedAt) {
-      throw new ForbiddenException('This account has been locked. Please contact an administrator.');
+      throw new ForbiddenException(
+        'This account has been locked. Please contact an administrator.',
+      );
     }
 
     if (!user || !user.employee) {
@@ -98,7 +97,7 @@ export class AuthService {
       );
     }
 
-     await this.notificationsService.notifyWelcome(user.employee, 'employee'); //Steven
+    //  await this.notificationsService.notifyWelcome(user.employee, 'employee'); //Steven
 
     const payload = this.createJwtPayload(user);
     return this.jwtService.sign(payload);
@@ -115,17 +114,17 @@ export class AuthService {
       const userRepo = manager.getRepository(User);
       const clientRepo = manager.getRepository(Client);
 
-      
       let user = await userRepo.findOne({
         where: { email: googleUser.email },
         relations: { client: true },
-        withDeleted: true, 
+        withDeleted: true,
       });
-      
-      if (user && user.deletedAt) {
-        throw new ForbiddenException('This account has been locked. Please contact an administrator.');
-      }
 
+      if (user && user.deletedAt) {
+        throw new ForbiddenException(
+          'This account has been locked. Please contact an administrator.',
+        );
+      }
 
       if (user && !user.client) {
         throw new UnauthorizedException(
@@ -148,14 +147,14 @@ export class AuthService {
         const newClient = clientRepo.create({ user: newUser });
         const savedClient = await clientRepo.save(newClient);
         user = savedClient.user;
-      
+
         //Steven
-      await this.notificationsService.notifyWelcome(
-          savedClient,
-          'client',
-          manager,
-        ); //Steven
-      };
+        // await this.notificationsService.notifyWelcome(
+        //   savedClient,
+        //   'client',
+        //   manager,
+        // ); //Steven
+      }
 
       if (!user)
         throw new InternalServerErrorException(
@@ -180,21 +179,20 @@ export class AuthService {
         ? { employee: { roles: true, user: true } } // STEVEN Y NACHO
         : { client: true };
 
-
     const user = await this.getUserRepository().findOne({
       where: { email },
       relations,
       withDeleted: true, // Se busca también en eliminados
     });
 
-    
     if (user && user.deletedAt) {
-      throw new ForbiddenException('This account has been locked. Please contact an administrator.');
+      throw new ForbiddenException(
+        'This account has been locked. Please contact an administrator.',
+      );
     }
-    
 
- //agrego
-//  console.log('LOGIN DEBUG: usuario encontrado:', user);
+    //agrego
+    //  console.log('LOGIN DEBUG: usuario encontrado:', user);
     if (
       !user ||
       (userType === 'employee' && !user.employee) ||
@@ -208,12 +206,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-     // 🔔 Notificación de login //Steven
-    if (userType === 'employee') {
-      await this.notificationsService.notifyLogin(user.employee, 'employee');
-    } else {
-      await this.notificationsService.notifyLogin(user.client, 'client');
-    }
+    // 🔔 Notificación de login //Steven
+    // if (userType === 'employee') {
+    //   await this.notificationsService.notifyLogin(user.employee, 'employee');
+    // } else {
+    //   await this.notificationsService.notifyLogin(user.client, 'client');
+    // }
 
     return user;
   }
@@ -248,7 +246,6 @@ export class AuthService {
     };
   }
 
-
   private async registerUserWithRole(
     dto: RegisterEmployeeDto | RegisterClientDto,
     role: 'employee' | 'client',
@@ -257,23 +254,24 @@ export class AuthService {
 
     return dataSource.transaction(async (manager) => {
       const userRepo = manager.getRepository(User);
-      
+
       const existingUser = await userRepo.findOne({
-          where: { email: dto.email },
-          withDeleted: true, // Se busca también en eliminados
+        where: { email: dto.email },
+        withDeleted: true, // Se busca también en eliminados
       });
 
       if (existingUser) {
-        
         if (existingUser.deletedAt) {
-          throw new ForbiddenException('This account has been locked. Please contact an administrator.');
+          throw new ForbiddenException(
+            'This account has been locked. Please contact an administrator.',
+          );
         }
-        
+
         throw new ConflictException('Email already registered');
       }
 
       const hashedPassword = await bcrypt.hash(dto.password, 10);
-      
+
       let newUser: User;
 
       if (role === 'employee') {
@@ -287,41 +285,39 @@ export class AuthService {
         if (roleIds && roleIds.length > 0) {
           const roleRepo = manager.getRepository(Role);
           const existingRoles = await roleRepo.findBy({ id: In(roleIds) });
-          
+
           if (existingRoles.length !== roleIds.length) {
             throw new BadRequestException('One or more roles are invalid');
           }
 
-          
           const forbiddenRoles = ['ADMIN', 'SUPERADMIN'];
-          const hasForbiddenRole = existingRoles.some(role => 
-            forbiddenRoles.includes(role.name.toUpperCase())
+          const hasForbiddenRole = existingRoles.some((role) =>
+            forbiddenRoles.includes(role.name.toUpperCase()),
           );
 
           if (hasForbiddenRole) {
-            throw new BadRequestException('Assigning ADMIN or SUPERADMIN roles is not permitted.');
+            throw new BadRequestException(
+              'Assigning ADMIN or SUPERADMIN roles is not permitted.',
+            );
           }
 
           rolesToAssign = existingRoles;
         }
-        
-        const newEmployee = employeeRepo.create({ 
+
+        const newEmployee = employeeRepo.create({
           user: newUser,
-          roles: rolesToAssign 
+          roles: rolesToAssign,
         });
-        
-            const savedEmployee = await employeeRepo.save(newEmployee);
 
-        await this.notificationsService.notifyWelcome(
-          savedEmployee,
-          'employee',
-           manager,
-            { email: newUser.email, password: dto.password }, //Steven
-        );
+        const savedEmployee = await employeeRepo.save(newEmployee);
+
+        // await this.notificationsService.notifyWelcome(
+        //   savedEmployee,
+        //   'employee',
+        //   manager,
+        //   { email: newUser.email, password: dto.password }, //Steven
+        // );
         return savedEmployee.user;
-
-        
-
       } else {
         const clientRepo = manager.getRepository(Client);
         newUser = userRepo.create({ ...dto, password: hashedPassword });
@@ -329,40 +325,18 @@ export class AuthService {
         const newClient = clientRepo.create({ user: newUser });
         const savedClient = await clientRepo.save(newClient);
 
-        await this.notificationsService.notifyWelcome(
-          savedClient,
-          'client',
-          manager,
-            { email: newUser.email, password: dto.password },//Steven
-        ); 
+        // await this.notificationsService.notifyWelcome(
+        //   savedClient,
+        //   'client',
+        //   manager,
+        //   { email: newUser.email, password: dto.password }, //Steven
+        // );
 
-      return newUser;
-    }
+        return newUser;
+      }
     });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import {
 //   Injectable,
@@ -597,15 +571,6 @@ export class AuthService {
 //     });
 //   }
 // }
-
-
-
-
-
-
-
-
-
 
 // import {
 //   Injectable,
